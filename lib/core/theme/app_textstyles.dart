@@ -1,47 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
   AppTextStyles._();
 
   // ---------------- Headings ----------------
-  static const TextStyle h1 = TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
-    height: 1.3,
+  static TextStyle display = GoogleFonts.urbanist(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    height: 1.2,
+    letterSpacing: -0.8,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle h2 = TextStyle(
+  static TextStyle h1 = GoogleFonts.urbanist(
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    height: 1.25,
+    letterSpacing: -0.5,
+    color: AppColors.textPrimary,
+  );
+
+  static TextStyle h2 = GoogleFonts.urbanist(
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.3,
+    letterSpacing: -0.3,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle h3 = TextStyle(
+  static TextStyle h3 = GoogleFonts.urbanist(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    height: 1.3,
+    height: 1.35,
+    letterSpacing: -0.2,
     color: AppColors.textPrimary,
   );
 
   // ---------------- Body ----------------
-  static const TextStyle bodyLarge = TextStyle(
+  static TextStyle bodyLarge = GoogleFonts.urbanist(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
+    letterSpacing: -0.1,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
+  static TextStyle bodyMedium = GoogleFonts.urbanist(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.5,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  static TextStyle bodySmall = GoogleFonts.urbanist(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.4,
@@ -49,50 +62,50 @@ class AppTextStyles {
   );
 
   // ---------------- Labels / UI text ----------------
-  static const TextStyle subtitle = TextStyle(
+  static TextStyle subtitle = GoogleFonts.urbanist(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.4,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle caption = TextStyle(
+  static TextStyle caption = GoogleFonts.urbanist(
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     height: 1.3,
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle button = TextStyle(
+  static TextStyle button = GoogleFonts.urbanist(
     fontSize: 15,
     fontWeight: FontWeight.w600,
     height: 1.2,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
     color: AppColors.onPrimary,
   );
 
-  static const TextStyle badge = TextStyle(
+  static TextStyle badge = GoogleFonts.urbanist(
     fontSize: 11,
     fontWeight: FontWeight.w600,
     height: 1.2,
     letterSpacing: 0.2,
   );
 
-  static const TextStyle inputText = TextStyle(
+  static TextStyle inputText = GoogleFonts.urbanist(
     fontSize: 15,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle inputHint = TextStyle(
-    fontSize: 15,
+  static TextStyle inputHint = GoogleFonts.urbanist(
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textDisabled,
   );
 
-  static const TextStyle errorText = TextStyle(
+  static TextStyle errorText = GoogleFonts.urbanist(
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.error,
   );
 }
