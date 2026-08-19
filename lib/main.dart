@@ -10,7 +10,11 @@ import 'package:taskly/features/task_adding_screen/controller/task_adding_contro
 import 'package:taskly/features/task_details_screen/controller/task_details_controller.dart';
 import 'package:taskly/features/task_listing_screen/controller/task_listing_controller.dart';
 
-void main() {
+import 'package:taskly/core/services/task_storage_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await TaskStorageService.init();
   runApp(const MyApp());
 }
 

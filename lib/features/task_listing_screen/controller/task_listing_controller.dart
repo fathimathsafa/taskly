@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../../core/errors/app_exception.dart';
+import '../../task_adding_screen/repository/task_repository.dart';
 import '../../dashboard_screen/model/task_model.dart';
 
 enum TaskListingState { initial, loading, loaded, error }
 
 class TaskListingController extends ChangeNotifier {
+  final ITaskRepository _repository;
+
   List<Task> _tasks = [];
   TaskListingState _state = TaskListingState.initial;
   String _errorMessage = '';
@@ -14,7 +18,8 @@ class TaskListingController extends ChangeNotifier {
   String _selectedPriority = 'All';
   bool _simulateError = false;
 
-  TaskListingController() {
+  TaskListingController({ITaskRepository? repository})
+      : _repository = repository ?? TaskRepository() {
     loadTasks();
   }
 
@@ -35,92 +40,25 @@ class TaskListingController extends ChangeNotifier {
   String get selectedPriority => _selectedPriority;
   bool get simulateError => _simulateError;
 
-  // Initial Task Seed Data
-  List<Task> _generateInitialTasks() {
-    final now = DateTime.now();
-    return [
-      Task(
-        id: 'task_101',
-        title: 'Design System & Dark Theme UI Kit',
-        description: 'Create responsive dark mode theme with primary violet glow accents, clean typography, and reusable glassmorphism cards.',
-        status: 'in progress',
-        priority: 'high',
-        assignee: 'Fathima Nasrin V K',
-        reviewer: 'Alex Morgan',
-        dueDate: now.add(const Duration(days: 3)),
-        createdAt: now.subtract(const Duration(days: 2)),
-        project: 'Taskly UI Architecture',
-      ),
-      Task(
-        id: 'task_102',
-        title: 'Backend API Authentication Setup',
-        description: 'Implement JWT refresh tokens, OAuth2 integration, and secure keychain token storage across mobile endpoints.',
-        status: 'pending',
-        priority: 'high',
-        assignee: 'Mohammed Rizwan',
-        reviewer: 'Fathima Nasrin V K',
-        dueDate: now.add(const Duration(days: 5)),
-        createdAt: now.subtract(const Duration(days: 1)),
-        project: 'Taskly Core Auth Service',
-      ),
-      Task(
-        id: 'task_103',
-        title: 'Push Notification Integration (iOS & Android)',
-        description: 'Configure APNS and Firebase Cloud Messaging for instant task assignment alert triggers.',
-        status: 'completed',
-        priority: 'medium',
-        assignee: 'Fathima Nasrin V K',
-        reviewer: 'Sarah Jenkins',
-        dueDate: now.subtract(const Duration(days: 1)),
-        createdAt: now.subtract(const Duration(days: 6)),
-        project: 'Lemon Interiors - CRM',
-      ),
-      Task(
-        id: 'task_104',
-        title: 'Meeting Room Booking Slot Engine',
-        description: 'Develop interactive calendar view for room availability checks and real-time conflict prevention.',
-        status: 'on hold',
-        priority: 'low',
-        assignee: 'David Chen',
-        reviewer: 'Mohammed Rizwan',
-        dueDate: now.add(const Duration(days: 10)),
-        createdAt: now.subtract(const Duration(days: 3)),
-        project: 'Enterprise Resource Portal',
-      ),
-      Task(
-        id: 'task_105',
-        title: 'Offline Sync & SQLite Database Caching',
-        description: 'Sync background changes automatically when network connection transitions from offline back to online state.',
-        status: 'pending',
-        priority: 'medium',
-        assignee: 'Fathima Nasrin V K',
-        reviewer: 'Alex Morgan',
-        dueDate: now.add(const Duration(days: 7)),
-        createdAt: now.subtract(const Duration(hours: 14)),
-        project: '{SW} DashX Accounts Portal',
-      ),
-    ];
-  }
-
-  // Fetch / Load Tasks
+  // Fetch / Load Tasks from TaskRepository
   Future<void> loadTasks() async {
     _state = TaskListingState.loading;
     _errorMessage = '';
     notifyListeners();
 
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 900));
-
-    if (_simulateError) {
-      _state = TaskListingState.error;
-      _errorMessage = 'Failed to load tasks. Server responded with status code 500 (Internal Server Error).';
-    } else {
-      if (_tasks.isEmpty) {
-        _tasks = _generateInitialTasks();
+    try {
+      if (_simulateError) {
+        throw const StorageException('Failed to load tasks. Storage system encountered an error.');
       }
+      
+      _tasks = _repository.getAllTasks();
       _state = TaskListingState.loaded;
+    } catch (e) {
+      _state = TaskListingState.error;
+      _errorMessage = e is AppException ? e.message : 'Error loading tasks: ${e.toString()}';
+    } finally {
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   // Pull to Refresh
@@ -134,7 +72,7 @@ class TaskListingController extends ChangeNotifier {
     loadTasks();
   }
 
-  // Toggle Error State Simulation (For testing error screen)
+  // Toggle Error State Simulation
   void toggleSimulateError() {
     _simulateError = !_simulateError;
     loadTasks();
@@ -143,7 +81,6 @@ class TaskListingController extends ChangeNotifier {
   // Filtering & Search
   List<Task> get filteredTasks {
     return _tasks.where((task) {
-      // Search match
       final query = _searchQuery.toLowerCase().trim();
       final matchesSearch = query.isEmpty ||
           task.title.toLowerCase().contains(query) ||
@@ -151,13 +88,11 @@ class TaskListingController extends ChangeNotifier {
           task.assignee.toLowerCase().contains(query) ||
           task.project.toLowerCase().contains(query);
 
-      // Status filter
       bool matchesStatus = true;
       if (_selectedStatus != 'All') {
         matchesStatus = task.status.toLowerCase() == _selectedStatus.toLowerCase();
       }
 
-      // Priority filter
       bool matchesPriority = true;
       if (_selectedPriority != 'All') {
         matchesPriority = task.priority.toLowerCase() == _selectedPriority.toLowerCase();
@@ -209,8 +144,32 @@ class TaskListingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Operations
-  void addTask({
+  // Operations via TaskRepository
+  Future<void> updateTaskStatus(String id, String newStatus) async {
+    final index = _tasks.indexWhere((t) => t.id == id);
+    if (index != -1) {
+      final updatedTask = _tasks[index].copyWith(
+        status: newStatus,
+        updatedAt: DateTime.now(),
+      );
+      _tasks[index] = updatedTask;
+      notifyListeners();
+      try {
+        await _repository.updateTask(updatedTask);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> deleteTask(String id) async {
+    _tasks.removeWhere((t) => t.id == id);
+    _selectedTaskIds.remove(id);
+    notifyListeners();
+    try {
+      await _repository.deleteTask(id);
+    } catch (_) {}
+  }
+
+  Future<void> addTask({
     required String title,
     required String description,
     required String priority,
@@ -218,40 +177,35 @@ class TaskListingController extends ChangeNotifier {
     required String assignee,
     required DateTime? dueDate,
     String? project,
-  }) {
+  }) async {
     final newTask = Task(
-      id: 'task_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'TSK-${(1000 + DateTime.now().millisecondsSinceEpoch % 9000)}',
       title: title.trim(),
       description: description.trim(),
       status: status,
       priority: priority,
-      assignee: assignee.trim().isEmpty ? 'Fathima Nasrin V K' : assignee.trim(),
+      assignee: assignee.trim().isEmpty ? 'Admin User' : assignee.trim(),
       dueDate: dueDate,
       createdAt: DateTime.now(),
-      project: project?.trim().isNotEmpty == true ? project!.trim() : 'General',
+      project: project?.trim().isNotEmpty == true ? project!.trim() : 'Taskly Workspace',
     );
 
     _tasks.insert(0, newTask);
     notifyListeners();
+    try {
+      await _repository.saveTask(newTask);
+    } catch (_) {}
   }
 
-  void updateTaskStatus(String id, String newStatus) {
-    final index = _tasks.indexWhere((t) => t.id == id);
-    if (index != -1) {
-      _tasks[index] = _tasks[index].copyWith(status: newStatus);
-      notifyListeners();
-    }
-  }
-
-  void deleteTask(String id) {
-    _tasks.removeWhere((t) => t.id == id);
-    _selectedTaskIds.remove(id);
-    notifyListeners();
-  }
-
-  void deleteSelectedTasks() {
+  Future<void> deleteSelectedTasks() async {
+    final idsToDelete = List<String>.from(_selectedTaskIds);
     _tasks.removeWhere((t) => _selectedTaskIds.contains(t.id));
     _selectedTaskIds.clear();
     notifyListeners();
+    for (final id in idsToDelete) {
+      try {
+        await _repository.deleteTask(id);
+      } catch (_) {}
+    }
   }
 }

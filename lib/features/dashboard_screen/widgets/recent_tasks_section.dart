@@ -88,6 +88,9 @@ class RecentTasksSection extends StatelessWidget {
     final tasks = allTasks.take(6).toList();
 
     if (tasks.isEmpty) {
+      final isSearching = controller.searchQuery.trim().isNotEmpty;
+      final isFiltered = controller.selectedFilter != 'all';
+
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
@@ -98,22 +101,27 @@ class RecentTasksSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const Icon(
-              Icons.assignment_outlined,
+            Icon(
+              isSearching ? Icons.search_off_rounded : Icons.assignment_outlined,
               color: AppColors.textSecondary,
               size: 44,
             ),
             const SizedBox(height: 12),
             Text(
-              'No tasks in this category',
+              isSearching
+                  ? 'No tasks matching "${controller.searchQuery}"'
+                  : (isFiltered ? 'No tasks in this category' : 'No tasks available.'),
               style: AppTextStyles.h3.copyWith(
                 color: AppColors.textPrimary,
                 fontSize: 16,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
-              'Try changing your filter or add a new task.',
+              isSearching || isFiltered
+                  ? 'Try clearing your search query or adjusting your filters.'
+                  : 'Get started by creating your first task!',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),

@@ -1,73 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../task_adding_screen/repository/task_repository.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../model/task_model.dart';
 
 class DashboardController extends ChangeNotifier {
-  final List<Task> _tasks = [
-    Task(
-      id: 'task_1',
-      title: 'accounts app - production fix',
-      description: 'Fix production bug in accounts integration module.',
-      status: 'completed',
-      priority: 'medium',
-      project: '{SW} DashX Accounts Portal',
-      assignee: 'Fathima Nasrin V K',
-      reviewer: 'Fathima Nasrin V K',
-      dueDate: DateTime(2026, 8, 12),
-      createdAt: DateTime.now().subtract(const Duration(days: 6)),
-    ),
-    Task(
-      id: 'task_2',
-      title: 'push notification integration ios',
-      description: 'Set up APNS push notification handling for iOS builds.',
-      status: 'in progress',
-      priority: 'medium',
-      project: 'Lemon Interiors - CRM Development',
-      assignee: 'Fathima Nasrin V K',
-      reviewer: 'Fathima Nasrin V K',
-      dueDate: DateTime(2026, 8, 17),
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    Task(
-      id: 'task_3',
-      title: 'create mobile app for meeting room booking',
-      description: 'Develop Flutter UI for room selection and calendar slot booking.',
-      status: 'on hold',
-      priority: 'medium',
-      project: 'Meeting Room Booking Portal',
-      assignee: 'Fathima Nasrin V K',
-      reviewer: 'Fathima Nasrin V K',
-      dueDate: DateTime(2026, 8, 20),
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    Task(
-      id: 'task_4',
-      title: 'Design System & Typography Refresh',
-      description: 'Implement modern color scheme and dark theme support.',
-      status: 'completed',
-      priority: 'high',
-      project: 'Taskly UI Kit',
-      assignee: 'Fathima Nasrin V K',
-      reviewer: 'Fathima Nasrin V K',
-      dueDate: DateTime(2026, 8, 10),
-      createdAt: DateTime.now().subtract(const Duration(days: 8)),
-    ),
-    Task(
-      id: 'task_5',
-      title: 'API Integration & Sync Service',
-      description: 'Connect REST endpoints and setup offline task caching layer.',
-      status: 'pending',
-      priority: 'medium',
-      project: 'Taskly Core Sync',
-      assignee: 'Fathima Nasrin V K',
-      reviewer: 'Fathima Nasrin V K',
-      dueDate: DateTime(2026, 8, 22),
-      createdAt: DateTime.now().subtract(const Duration(hours: 6)),
-    ),
-  ];
+  final ITaskRepository _repository;
+  List<Task> _tasks = [];
+  bool _isLoading = false;
 
   String? _selectedFilter = 'all';
   String _searchQuery = '';
 
+  DashboardController({ITaskRepository? repository})
+      : _repository = repository ?? TaskRepository() {
+    loadTasks();
+  }
+
+  bool get isLoading => _isLoading;
   List<Task> get tasks => List.unmodifiable(_tasks);
 
   String? get selectedFilter => _selectedFilter;
@@ -84,9 +33,7 @@ class DashboardController extends ChangeNotifier {
   int get completedTasks =>
       _tasks.where((t) => t.status.toLowerCase() == 'completed').length;
 
-  List<Task> get recentTasks {
-    return filteredTasks;
-  }
+  List<Task> get recentTasks => filteredTasks;
 
   List<Task> get filteredTasks {
     return _tasks.where((t) {
@@ -103,13 +50,28 @@ class DashboardController extends ChangeNotifier {
         matchesFilter = t.status.toLowerCase() == 'completed';
       }
 
-      final matchesSearch = _searchQuery.isEmpty ||
-          t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          t.project.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          t.description.toLowerCase().contains(_searchQuery.toLowerCase());
+      final query = _searchQuery.trim().toLowerCase();
+      final matchesSearch = query.isEmpty ||
+          t.title.toLowerCase().contains(query) ||
+          t.project.toLowerCase().contains(query) ||
+          t.description.toLowerCase().contains(query) ||
+          t.assignee.toLowerCase().contains(query);
 
       return matchesFilter && matchesSearch;
     }).toList();
+  }
+
+  void loadTasks() {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _tasks = _repository.getAllTasks();
+    } catch (_) {
+      _tasks = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void setSearchQuery(String query) {
@@ -117,7 +79,7 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addTask({
+  Future<void> addTask({
     required String title,
     required String description,
     required String priority,
@@ -125,35 +87,48 @@ class DashboardController extends ChangeNotifier {
     String? project,
     String? assignee,
     String? reviewer,
-  }) {
+  }) async {
     final newTask = Task(
-      id: 'task_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'TSK-${(1000 + DateTime.now().millisecondsSinceEpoch % 9000)}',
       title: title.trim(),
       description: description.trim(),
       status: 'pending',
       priority: priority,
       dueDate: dueDate,
       createdAt: DateTime.now(),
-      project: (project != null && project.isNotEmpty) ? project : '{SW} Taskly Portal',
-      assignee: (assignee != null && assignee.isNotEmpty) ? assignee : 'Fathima Nasrin V K',
-      reviewer: (reviewer != null && reviewer.isNotEmpty) ? reviewer : 'Fathima Nasrin V K',
+      project: (project != null && project.isNotEmpty) ? project : 'Taskly Workspace',
+      assignee: (assignee != null && assignee.isNotEmpty) ? assignee : 'Admin User',
+      reviewer: (reviewer != null && reviewer.isNotEmpty) ? reviewer : 'Admin User',
     );
 
     _tasks.insert(0, newTask);
     notifyListeners();
+    try {
+      await _repository.saveTask(newTask);
+    } catch (_) {}
   }
 
-  void updateTaskStatus(String id, String newStatus) {
+  Future<void> updateTaskStatus(String id, String newStatus) async {
     final index = _tasks.indexWhere((t) => t.id == id);
     if (index != -1) {
-      _tasks[index] = _tasks[index].copyWith(status: newStatus);
+      final updatedTask = _tasks[index].copyWith(
+        status: newStatus,
+        updatedAt: DateTime.now(),
+      );
+      _tasks[index] = updatedTask;
       notifyListeners();
+      try {
+        await _repository.updateTask(updatedTask);
+      } catch (_) {}
     }
   }
 
-  void deleteTask(String id) {
+  Future<void> deleteTask(String id) async {
     _tasks.removeWhere((t) => t.id == id);
     notifyListeners();
+    try {
+      await _repository.deleteTask(id);
+    } catch (_) {}
   }
 
   void setFilter(String? filter) {
@@ -162,6 +137,6 @@ class DashboardController extends ChangeNotifier {
   }
 
   void logout(BuildContext context) {
-    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
   }
 }

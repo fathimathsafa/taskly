@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
-import '../../task_listing_screen/controller/task_listing_controller.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/errors/app_exception.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../dashboard_screen/controller/dash_board_controller.dart';
+import '../../task_listing_screen/controller/task_listing_controller.dart';
+import '../service/task_adding_service.dart';
 
 class TaskAddingController extends ChangeNotifier {
+  final TaskAddingService _service;
+
+  TaskAddingController({TaskAddingService? service})
+      : _service = service ?? TaskAddingService();
+
   String _title = '';
   String _description = '';
   String _priority = 'medium';
   String _status = 'pending';
-  String _assignee = 'Fathima Nasrin V K';
+  String _assignee = 'Admin User';
   DateTime? _dueDate = DateTime.now().add(const Duration(days: 3));
 
-  // Validation Error Strings (Null means valid)
   String? _titleError;
   String? _descriptionError;
   String? _priorityError;
@@ -21,7 +30,6 @@ class TaskAddingController extends ChangeNotifier {
 
   bool _isSubmitting = false;
 
-  // Getters
   String get title => _title;
   String get description => _description;
   String get priority => _priority;
@@ -38,138 +46,55 @@ class TaskAddingController extends ChangeNotifier {
 
   bool get isSubmitting => _isSubmitting;
 
-  // Field Setters with Real-time Validation
   void setTitle(String val) {
     _title = val;
-    validateTitle();
+    _titleError = _service.validateTitle(val);
     notifyListeners();
   }
 
   void setDescription(String val) {
     _description = val;
-    validateDescription();
+    _descriptionError = _service.validateDescription(val);
     notifyListeners();
   }
 
   void setPriority(String val) {
     _priority = val;
-    validatePriority();
+    _priorityError = null;
     notifyListeners();
   }
 
   void setStatus(String val) {
     _status = val;
-    validateStatus();
+    _statusError = null;
     notifyListeners();
   }
 
   void setAssignee(String val) {
     _assignee = val;
-    validateAssignee();
+    _assigneeError = _service.validateAssignee(val);
     notifyListeners();
   }
 
   void setDueDate(DateTime? date) {
     _dueDate = date;
-    validateDueDate();
+    _dueDateError = _service.validateDueDate(date);
     notifyListeners();
   }
 
-  // Individual Validators
-  bool validateTitle() {
-    final trimmed = _title.trim();
-    if (trimmed.isEmpty) {
-      _titleError = 'Task title is required';
-      return false;
-    } else if (trimmed.length < 3) {
-      _titleError = 'Title must be at least 3 characters long';
-      return false;
-    } else if (trimmed.length > 60) {
-      _titleError = 'Title cannot exceed 60 characters (Current: ${trimmed.length})';
-      return false;
-    }
-    _titleError = null;
-    return true;
-  }
-
-  bool validateDescription() {
-    final trimmed = _description.trim();
-    if (trimmed.isEmpty) {
-      _descriptionError = 'Task description is required';
-      return false;
-    } else if (trimmed.length < 10) {
-      _descriptionError = 'Description must be at least 10 characters long';
-      return false;
-    } else if (trimmed.length > 500) {
-      _descriptionError = 'Description cannot exceed 500 characters (Current: ${trimmed.length})';
-      return false;
-    }
-    _descriptionError = null;
-    return true;
-  }
-
-  bool validatePriority() {
-    if (_priority.isEmpty) {
-      _priorityError = 'Priority selection is required';
-      return false;
-    }
-    _priorityError = null;
-    return true;
-  }
-
-  bool validateStatus() {
-    if (_status.isEmpty) {
-      _statusError = 'Initial status is required';
-      return false;
-    }
-    _statusError = null;
-    return true;
-  }
-
-  bool validateAssignee() {
-    final trimmed = _assignee.trim();
-    if (trimmed.isEmpty) {
-      _assigneeError = 'Assigned user is required';
-      return false;
-    } else if (trimmed.length < 3) {
-      _assigneeError = 'Assignee name must be at least 3 characters long';
-      return false;
-    }
-    _assigneeError = null;
-    return true;
-  }
-
-  bool validateDueDate() {
-    if (_dueDate == null) {
-      _dueDateError = 'Due date selection is required';
-      return false;
-    }
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final selectedDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
-    
-    if (selectedDate.isBefore(today)) {
-      _dueDateError = 'Due date cannot be in the past';
-      return false;
-    }
-    _dueDateError = null;
-    return true;
-  }
-
-  // Validate All Fields
   bool validateAll() {
-    final v1 = validateTitle();
-    final v2 = validateDescription();
-    final v3 = validatePriority();
-    final v4 = validateStatus();
-    final v5 = validateAssignee();
-    final v6 = validateDueDate();
+    _titleError = _service.validateTitle(_title);
+    _descriptionError = _service.validateDescription(_description);
+    _assigneeError = _service.validateAssignee(_assignee);
+    _dueDateError = _service.validateDueDate(_dueDate);
 
     notifyListeners();
-    return v1 && v2 && v3 && v4 && v5 && v6;
+    return _titleError == null &&
+        _descriptionError == null &&
+        _assigneeError == null &&
+        _dueDateError == null;
   }
 
-  // Submit Form Action
   Future<void> submitForm(
     BuildContext context,
     TaskListingController taskListingController,
@@ -181,9 +106,11 @@ class TaskAddingController extends ChangeNotifier {
             children: [
               const Icon(Icons.warning_amber_rounded, color: Colors.white),
               const SizedBox(width: 10),
-              Text(
-                'Please fix form validation errors before saving.',
-                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+              Expanded(
+                child: Text(
+                  'Please fix form validation errors before saving.',
+                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -198,59 +125,84 @@ class TaskAddingController extends ChangeNotifier {
     _isSubmitting = true;
     notifyListeners();
 
-    // Simulate network saving delay
-    await Future.delayed(const Duration(milliseconds: 600));
+    try {
+      await _service.addNewTask(
+        title: _title,
+        description: _description,
+        status: _status,
+        priority: _priority,
+        dueDate: _dueDate!,
+        assignee: _assignee,
+      );
 
-    // Save Task to Controller
-    taskListingController.addTask(
-      title: _title,
-      description: _description,
-      priority: _priority,
-      status: _status,
-      assignee: _assignee,
-      dueDate: _dueDate,
-      project: '{SW} Taskly Portal',
-    );
+      taskListingController.loadTasks();
+      if (context.mounted) {
+        try {
+          context.read<DashboardController>().loadTasks();
+        } catch (_) {}
+      }
 
-    _isSubmitting = false;
-    notifyListeners();
+      _isSubmitting = false;
+      notifyListeners();
 
-    // Show Success Toast/Message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Task Created Successfully!', style: AppTextStyles.subtitle.copyWith(color: Colors.white)),
-                    Text('Navigating to Task List...', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
-                  ],
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Task Created Successfully!', style: AppTextStyles.subtitle.copyWith(color: Colors.white)),
+                      Text('Saved to local storage', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+        );
 
-      // Reset form
-      resetForm();
+        resetForm();
 
-      // Navigate to Task Listing Screen
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/task-list',
-        (route) => route.settings.name == '/dashboard' || route.isFirst,
-      );
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.taskList,
+          (route) => route.settings.name == AppRoutes.dashboard || route.isFirst,
+        );
+      }
+    } catch (e) {
+      _isSubmitting = false;
+      notifyListeners();
+
+      final errorMsg = e is AppException ? e.message : 'Failed to save task: ${e.toString()}';
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(errorMsg, style: AppTextStyles.bodyMedium.copyWith(color: Colors.white)),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     }
   }
 
@@ -259,7 +211,7 @@ class TaskAddingController extends ChangeNotifier {
     _description = '';
     _priority = 'medium';
     _status = 'pending';
-    _assignee = 'Fathima Nasrin V K';
+    _assignee = 'Admin User';
     _dueDate = DateTime.now().add(const Duration(days: 3));
 
     _titleError = null;

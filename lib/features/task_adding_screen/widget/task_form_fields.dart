@@ -54,12 +54,11 @@ class TaskFormFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Task Title Field
         _buildFieldLabel('Task Title *'),
         const SizedBox(height: 6),
         TextField(
           onChanged: (val) => controller.setTitle(val),
-          maxLength: 60,
+          maxLength: 100,
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
@@ -69,13 +68,12 @@ class TaskFormFields extends StatelessWidget {
             icon: Icons.title_rounded,
             errorText: controller.titleError,
             currentLength: controller.title.length,
-            maxLength: 60,
+            maxLength: 100,
           ),
         ),
 
         const SizedBox(height: 18),
 
-        // 2. Task Description Field
         _buildFieldLabel('Description *'),
         const SizedBox(height: 6),
         TextField(
@@ -94,7 +92,6 @@ class TaskFormFields extends StatelessWidget {
 
         const SizedBox(height: 18),
 
-        // 3. Priority Selection Field Block
         _buildFieldLabel('Priority Level *'),
         const SizedBox(height: 8),
         Container(
