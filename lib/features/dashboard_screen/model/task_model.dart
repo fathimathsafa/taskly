@@ -6,6 +6,7 @@ class Task {
   final String priority; // 'low', 'medium', 'high'
   final DateTime? dueDate;
   final DateTime createdAt;
+  final DateTime updatedAt;
   final String project;
   final String assignee;
   final String reviewer;
@@ -18,10 +19,12 @@ class Task {
     this.priority = 'medium',
     this.dueDate,
     DateTime? createdAt,
+    DateTime? updatedAt,
     this.project = '{SW} DashX Accounts Portal',
     this.assignee = 'Fathima Nasrin V K',
     this.reviewer = 'Fathima Nasrin V K',
-  }) : createdAt = createdAt ?? DateTime.now();
+  })  : createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? (createdAt ?? DateTime.now());
 
   Task copyWith({
     String? id,
@@ -31,6 +34,7 @@ class Task {
     String? priority,
     DateTime? dueDate,
     DateTime? createdAt,
+    DateTime? updatedAt,
     String? project,
     String? assignee,
     String? reviewer,
@@ -43,6 +47,7 @@ class Task {
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       project: project ?? this.project,
       assignee: assignee ?? this.assignee,
       reviewer: reviewer ?? this.reviewer,

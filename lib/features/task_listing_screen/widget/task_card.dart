@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
 import '../../dashboard_screen/model/task_model.dart';
-import 'task_detail_screen.dart';
+import '../../task_details_screen/view/task_details_screen.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -74,7 +74,7 @@ class TaskCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => TaskDetailScreen(task: task),
+                builder: (context) => TaskDetailsScreen(initialTask: task),
               ),
             );
           },
@@ -164,7 +164,7 @@ class TaskCard extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => TaskDetailScreen(task: task),
+                              builder: (context) => TaskDetailsScreen(initialTask: task),
                             ),
                           );
                         } else {

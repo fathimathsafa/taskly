@@ -6,6 +6,8 @@ import 'package:taskly/features/dashboard_screen/controller/dash_board_controlle
 import 'package:taskly/features/dashboard_screen/view/dash_board_screen.dart';
 import 'package:taskly/features/task_adding_screen/controller/task_adding_controller.dart';
 import 'package:taskly/features/task_adding_screen/view/task_adding_screen.dart';
+import 'package:taskly/features/task_details_screen/controller/task_details_controller.dart';
+import 'package:taskly/features/task_details_screen/view/task_details_screen.dart';
 import 'package:taskly/features/task_listing_screen/controller/task_listing_controller.dart';
 import 'package:taskly/features/task_listing_screen/view/task_listing%20screen.dart';
 
@@ -23,6 +25,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DashboardController()),
         ChangeNotifierProvider(create: (_) => TaskListingController()),
         ChangeNotifierProvider(create: (_) => TaskAddingController()),
+        ChangeNotifierProvider(create: (_) => TaskDetailsController()),
       ],
       child: MaterialApp(
         title: 'Taskly',
@@ -34,6 +37,7 @@ class MyApp extends StatelessWidget {
           '/dashboard': (context) => const DashBoardScreen(),
           '/task-list': (context) => const TaskListingScreen(),
           '/add-task': (context) => const TaskAddingScreen(),
+          '/task-details': (context) => const TaskDetailsScreen(),
         },
       ),
     );
