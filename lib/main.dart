@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:taskly/core/constants/app_constants.dart';
+import 'package:taskly/core/routes/app_router.dart';
 import 'package:taskly/core/theme/app_theme.dart';
 import 'package:taskly/features/auth/login_Screen/controller/login_screen_controller.dart';
-import 'package:taskly/features/auth/login_Screen/view/login_screen.dart';
 import 'package:taskly/features/dashboard_screen/controller/dash_board_controller.dart';
-import 'package:taskly/features/dashboard_screen/view/dash_board_screen.dart';
 import 'package:taskly/features/profile_screen/controller/profile_controller.dart';
-import 'package:taskly/features/profile_screen/view/profile_screen.dart';
 import 'package:taskly/features/task_adding_screen/controller/task_adding_controller.dart';
-import 'package:taskly/features/task_adding_screen/view/task_adding_screen.dart';
 import 'package:taskly/features/task_details_screen/controller/task_details_controller.dart';
-import 'package:taskly/features/task_details_screen/view/task_details_screen.dart';
 import 'package:taskly/features/task_listing_screen/controller/task_listing_controller.dart';
-import 'package:taskly/features/task_listing_screen/view/task_listing%20screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,18 +29,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfileController()),
       ],
       child: MaterialApp(
-        title: 'Taskly',
+        title: AppStrings.appName,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        initialRoute: '/login',
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/dashboard': (context) => const DashBoardScreen(),
-          '/task-list': (context) => const TaskListingScreen(),
-          '/add-task': (context) => const TaskAddingScreen(),
-          '/task-details': (context) => const TaskDetailsScreen(),
-          '/profile': (context) => const ProfileScreen(),
-        },
+        initialRoute: AppRouter.initialRoute,
+        routes: AppRouter.routes,
+        onGenerateRoute: AppRouter.onGenerateRoute,
       ),
     );
   }
