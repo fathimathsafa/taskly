@@ -54,7 +54,6 @@ class LoginScreenController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // Simulate network authentication call
     await Future.delayed(const Duration(milliseconds: 800));
 
     final email = emailController.text.trim();
