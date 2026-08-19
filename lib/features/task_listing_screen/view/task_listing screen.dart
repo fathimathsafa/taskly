@@ -1,0 +1,171 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../controller/task_listing_controller.dart';
+import '../widget/add_task_dialog.dart';
+import '../widget/task_card.dart';
+import '../widget/task_empty_view.dart';
+import '../widget/task_error_view.dart';
+import '../widget/task_listing_header.dart';
+import '../widget/task_loading_view.dart';
+
+/// TaskListingScreen implemented strictly as a [StatelessWidget]
+/// featuring a single, smooth full-page ScrollView with Pull-to-Refresh.
+class TaskListingScreen extends StatelessWidget {
+  const TaskListingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    return Consumer<TaskListingController>(
+      builder: (context, controller, child) {
+        final searchController = TextEditingController.fromValue(
+          TextEditingValue(
+            text: controller.searchQuery,
+            selection: TextSelection.collapsed(offset: controller.searchQuery.length),
+          ),
+        );
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+
+          // Add Task Button (Floating Action Button)
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => Navigator.pushNamed(context, '/add-task'),
+            backgroundColor: AppColors.primary,
+            elevation: 8,
+            icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+            label: const Text(
+              'Add Task',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+
+          body: Stack(
+            children: [
+              // Ambient Glow Background Accents
+              Positioned(
+                top: -size.width * 0.3,
+                right: -size.width * 0.2,
+                child: Container(
+                  width: size.width * 0.85,
+                  height: size.width * 0.85,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.15),
+                        AppColors.primary.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Full Screen Single ScrollView with Pull-to-Refresh
+              SafeArea(
+                child: RefreshIndicator(
+                  onRefresh: () => controller.refreshTasks(),
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1100),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Compact Header (Title, Stats, Search, Filter Button)
+                            TaskListingHeader(
+                              controller: controller,
+                              searchController: searchController,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // State-dependent List Body
+                            _buildBodyContent(context, controller),
+
+                            const SizedBox(height: 80), // Bottom padding for FAB space
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds state-dependent content within the page ScrollView
+  Widget _buildBodyContent(BuildContext context, TaskListingController controller) {
+    // 1. Loading State
+    if (controller.isLoading) {
+      return const TaskLoadingView();
+    }
+
+    // 2. Error State with Retry Option
+    if (controller.hasError) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 16.0),
+        child: TaskErrorView(
+          errorMessage: controller.errorMessage,
+          onRetry: () => controller.retry(),
+        ),
+      );
+    }
+
+    final tasks = controller.filteredTasks;
+
+    // 3. Empty State
+    if (tasks.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 16.0),
+        child: TaskEmptyView(
+          title: controller.searchQuery.isNotEmpty || controller.selectedStatus != 'All' || controller.selectedPriority != 'All'
+              ? 'No Matching Tasks'
+              : 'No Tasks Yet',
+          subtitle: controller.searchQuery.isNotEmpty || controller.selectedStatus != 'All' || controller.selectedPriority != 'All'
+              ? 'No tasks match your active search filter criteria.'
+              : 'Your task list is empty. Get started by tapping the Add Task button!',
+          onResetFilters: controller.searchQuery.isNotEmpty || controller.selectedStatus != 'All' || controller.selectedPriority != 'All'
+              ? () => controller.resetFilters()
+              : null,
+          onAddTask: () => AddTaskDialog.show(context, controller),
+        ),
+      );
+    }
+
+    // 4. Task Listing State
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        final isSelected = controller.isTaskSelected(task.id);
+
+        return TaskCard(
+          task: task,
+          isSelected: isSelected,
+          onSelectToggle: () => controller.toggleTaskSelection(task.id),
+          onStatusChange: (newStatus) => controller.updateTaskStatus(task.id, newStatus),
+          onDelete: () => controller.deleteTask(task.id),
+        );
+      },
+    );
+  }
+}

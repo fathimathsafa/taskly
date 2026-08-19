@@ -88,11 +88,24 @@ class DashboardHeader extends StatelessWidget {
             side: const BorderSide(color: AppColors.border),
           ),
           onSelected: (val) {
-            if (val == 'logout') {
+            if (val == 'task_list') {
+              Navigator.pushNamed(context, '/task-list');
+            } else if (val == 'logout') {
               _showLogoutDialog(context);
             }
           },
           itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'task_list',
+              child: Row(
+                children: [
+                  Icon(Icons.list_alt_rounded, size: 18, color: AppColors.primary),
+                  SizedBox(width: 10),
+                  Text('Task Listing Screen', style: TextStyle(color: AppColors.textPrimary)),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
             const PopupMenuItem(
               value: 'logout',
               child: Row(
