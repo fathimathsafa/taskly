@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_textstyles.dart';
 import '../../dashboard_screen/model/task_model.dart';
 import '../../task_listing_screen/controller/task_listing_controller.dart';
 import '../controller/task_details_controller.dart';
 import '../widget/task_details_grid.dart';
-import '../widget/task_details_header.dart';
 import '../widget/task_details_info_card.dart';
 import '../widget/task_status_actions.dart';
 
@@ -48,6 +48,27 @@ class TaskDetailsScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.textPrimary,
+                size: 24,
+              ),
+            ),
+            title: Text(
+              'Task Details',
+              style: AppTextStyles.h1.copyWith(
+                color: AppColors.textPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            centerTitle: false,
+          ),
           body: Stack(
             children: [
               // Ambient Glow Accent Background
@@ -79,13 +100,6 @@ class TaskDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TaskDetailsHeader(
-                            controller: controller,
-                            taskListingController: taskListingController,
-                          ),
-
-                          const SizedBox(height: 20),
-
                           TaskDetailsInfoCard(task: currentTask),
 
                           const SizedBox(height: 20),

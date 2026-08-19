@@ -39,17 +39,7 @@ class TaskDetailsGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Task Metadata',
-          style: AppTextStyles.subtitle.copyWith(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Responsive Cards Row 1: Assigned User & Due Date
+        // Row 1: Assigned User & Due Date
         Row(
           children: [
             Expanded(
@@ -57,7 +47,7 @@ class TaskDetailsGrid extends StatelessWidget {
                 icon: Icons.person_outline_rounded,
                 iconColor: AppColors.primary,
                 title: 'Assigned User',
-                value: task.assignee,
+                value: task.assignee.isNotEmpty ? task.assignee : 'Unassigned',
               ),
             ),
             const SizedBox(width: 10),
@@ -74,27 +64,12 @@ class TaskDetailsGrid extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // Responsive Cards Row 2: Created Date & Updated Date
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetaTile(
-                icon: Icons.access_time_rounded,
-                iconColor: AppColors.textSecondary,
-                title: 'Created Date',
-                value: _formatDateTime(task.createdAt),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetaTile(
-                icon: Icons.update_rounded,
-                iconColor: AppColors.info,
-                title: 'Updated Date',
-                value: _formatDateTime(task.updatedAt),
-              ),
-            ),
-          ],
+        // Row 2: Created Date
+        _buildMetaTile(
+          icon: Icons.access_time_rounded,
+          iconColor: AppColors.textSecondary,
+          title: 'Created Date',
+          value: _formatDateTime(task.createdAt),
         ),
       ],
     );
@@ -111,8 +86,17 @@ class TaskDetailsGrid extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.3),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_textstyles.dart';
 import '../controller/task_listing_controller.dart';
 import '../widget/add_task_dialog.dart';
 import '../widget/task_card.dart';
@@ -29,6 +30,27 @@ class TaskListingScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.textPrimary,
+                size: 24,
+              ),
+            ),
+            title: Text(
+              'Task Listing',
+              style: AppTextStyles.h1.copyWith(
+                color: AppColors.textPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            centerTitle: false,
+          ),
 
           // Add Task Button (Floating Action Button)
           floatingActionButton: FloatingActionButton.extended(

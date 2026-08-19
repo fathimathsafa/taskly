@@ -15,7 +15,7 @@ class AppTextStyles {
   );
 
   static TextStyle h1 = GoogleFonts.urbanist(
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     height: 1.25,
     letterSpacing: -0.5,
@@ -23,7 +23,7 @@ class AppTextStyles {
   );
 
   static TextStyle h2 = GoogleFonts.urbanist(
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: FontWeight.w700,
     height: 1.3,
     letterSpacing: -0.3,

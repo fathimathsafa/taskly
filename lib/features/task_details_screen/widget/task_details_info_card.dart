@@ -20,12 +20,21 @@ class TaskDetailsInfoCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppColors.cardShadow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,30 +44,6 @@ class TaskDetailsInfoCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              // Priority Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: priorityBgColor,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: priorityColor.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.flag_rounded, size: 12, color: priorityColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${task.priority.toUpperCase()} PRIORITY',
-                      style: AppTextStyles.badge.copyWith(
-                        color: priorityColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
               // Status Badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -89,6 +74,30 @@ class TaskDetailsInfoCard extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Priority Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: priorityBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: priorityColor.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.flag_rounded, size: 12, color: priorityColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${task.priority.toUpperCase()} PRIORITY',
+                      style: AppTextStyles.badge.copyWith(
+                        color: priorityColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
 
@@ -99,31 +108,14 @@ class TaskDetailsInfoCard extends StatelessWidget {
             task.title,
             style: AppTextStyles.h1.copyWith(
               color: AppColors.textPrimary,
-              fontSize: 22,
-              height: 1.3,
+              fontSize: 20,
+              height: 1.35,
             ),
           ),
 
-          if (task.project.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(Icons.folder_open_rounded, size: 15, color: AppColors.primary),
-                const SizedBox(width: 6),
-                Text(
-                  task.project,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.primarySoft,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           const Divider(color: AppColors.divider),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           // Description Section
           Text(
@@ -131,6 +123,7 @@ class TaskDetailsInfoCard extends StatelessWidget {
             style: AppTextStyles.subtitle.copyWith(
               color: AppColors.textSecondary,
               fontSize: 13,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
@@ -141,10 +134,10 @@ class TaskDetailsInfoCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.background.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
             child: Text(
-              task.description,
+              task.description.isNotEmpty ? task.description : 'No description provided.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textPrimary,
                 height: 1.6,

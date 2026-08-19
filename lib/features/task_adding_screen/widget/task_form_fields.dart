@@ -20,8 +20,8 @@ class TaskFormFields extends StatelessWidget {
       lastDate: now.add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
               primary: AppColors.primary,
               onPrimary: Colors.white,
               surface: AppColors.surface,
@@ -60,7 +60,10 @@ class TaskFormFields extends StatelessWidget {
         TextField(
           onChanged: (val) => controller.setTitle(val),
           maxLength: 60,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
           decoration: _inputDecoration(
             hint: 'Enter concise task title...',
             icon: Icons.title_rounded,
@@ -70,7 +73,7 @@ class TaskFormFields extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // 2. Task Description Field
         _buildFieldLabel('Description *'),
@@ -89,60 +92,71 @@ class TaskFormFields extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
-        // 3. Priority Selection Field
-        _buildFieldLabel('Priority *'),
+        // 3. Priority Selection Field Block
+        _buildFieldLabel('Priority Level *'),
         const SizedBox(height: 8),
-        Row(
-          children: ['low', 'medium', 'high'].map((p) {
-            final isSelected = controller.priority.toLowerCase() == p.toLowerCase();
-            final color = AppColors.priorityColor(p);
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: InkWell(
-                  onTap: () => controller.setPriority(p),
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: isSelected ? color : AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? color : AppColors.border,
-                        width: isSelected ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.flag_rounded,
-                          size: 13,
-                          color: isSelected ? Colors.white : color,
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: controller.priorityError != null
+                  ? AppColors.error
+                  : AppColors.primary.withValues(alpha: 0.4),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            children: ['low', 'medium', 'high'].map((p) {
+              final isSelected = controller.priority.toLowerCase() == p.toLowerCase();
+              final color = AppColors.priorityColor(p);
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: InkWell(
+                    onTap: () => controller.setPriority(p),
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? color
+                            : AppColors.surfaceSubtle,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? color : Colors.transparent,
+                          width: 1.2,
                         ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.flag_rounded,
+                            size: 14,
+                            color: isSelected ? Colors.white : color,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
                             p.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: AppTextStyles.caption.copyWith(
                               color: isSelected ? Colors.white : color,
                               fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                              fontSize: 12,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
         if (controller.priorityError != null) ...[
           const SizedBox(height: 4),
@@ -151,23 +165,35 @@ class TaskFormFields extends StatelessWidget {
 
         const SizedBox(height: 18),
 
-        // 4. Status Selection Field
+        // 4. Initial Status Selector Field
         _buildFieldLabel('Initial Status *'),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: controller.statusError != null ? AppColors.error : AppColors.border),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: controller.statusError != null
+                  ? AppColors.error
+                  : AppColors.primary.withValues(alpha: 0.4),
+              width: 1.2,
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: controller.status,
               dropdownColor: AppColors.surface,
               isExpanded: true,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.primary,
+                size: 22,
+              ),
               items: const [
                 DropdownMenuItem(value: 'pending', child: Text('Pending')),
                 DropdownMenuItem(value: 'in progress', child: Text('In Progress')),
@@ -192,7 +218,10 @@ class TaskFormFields extends StatelessWidget {
         const SizedBox(height: 6),
         TextField(
           onChanged: (val) => controller.setAssignee(val),
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
           decoration: _inputDecoration(
             hint: 'Enter assignee full name...',
             icon: Icons.person_outline_rounded,
@@ -207,14 +236,17 @@ class TaskFormFields extends StatelessWidget {
         const SizedBox(height: 6),
         InkWell(
           onTap: () => _selectDueDate(context),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: controller.dueDateError != null ? AppColors.error : AppColors.border,
+                color: controller.dueDateError != null
+                    ? AppColors.error
+                    : AppColors.primary.withValues(alpha: 0.4),
+                width: 1.2,
               ),
             ),
             child: Row(
@@ -223,21 +255,33 @@ class TaskFormFields extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.secondary),
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           _formatDate(controller.dueDate),
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: controller.dueDate == null ? AppColors.textDisabled : AppColors.textPrimary,
-                            fontWeight: controller.dueDate == null ? FontWeight.normal : FontWeight.bold,
+                            color: controller.dueDate == null
+                                ? AppColors.textDisabled
+                                : AppColors.textPrimary,
+                            fontWeight: controller.dueDate == null
+                                ? FontWeight.normal
+                                : FontWeight.bold,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.edit_calendar_rounded, size: 18, color: AppColors.primary),
+                const Icon(
+                  Icons.edit_calendar_rounded,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
               ],
             ),
           ),
@@ -257,6 +301,7 @@ class TaskFormFields extends StatelessWidget {
         color: AppColors.textPrimary,
         fontWeight: FontWeight.w700,
         fontSize: 13,
+        letterSpacing: 0.2,
       ),
     );
   }
@@ -273,28 +318,33 @@ class TaskFormFields extends StatelessWidget {
       hintStyle: AppTextStyles.bodyMedium.copyWith(
         color: AppColors.textSecondary.withValues(alpha: 0.6),
       ),
-      prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
+      prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
       errorText: errorText,
       errorStyle: AppTextStyles.errorText,
-      counterText: (maxLength != null && currentLength != null) ? '$currentLength/$maxLength' : null,
-      counterStyle: AppTextStyles.caption.copyWith(color: AppColors.textDisabled, fontSize: 11),
+      counterText: (maxLength != null && currentLength != null)
+          ? '$currentLength/$maxLength'
+          : null,
+      counterStyle: AppTextStyles.caption.copyWith(
+        color: AppColors.textDisabled,
+        fontSize: 11,
+      ),
       filled: true,
       fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1.2),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1.2),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.8),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.error),
       ),
     );

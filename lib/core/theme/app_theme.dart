@@ -9,7 +9,7 @@ class AppTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       fontFamily: GoogleFonts.urbanist().fontFamily,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: ColorScheme.fromSeed(
@@ -18,7 +18,7 @@ class AppTheme {
         secondary: AppColors.secondary,
         error: AppColors.error,
         surface: AppColors.surface,
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
       ),
 
       // ---------------- Text ----------------

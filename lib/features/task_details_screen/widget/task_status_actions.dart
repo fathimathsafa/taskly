@@ -4,6 +4,7 @@ import '../../../../core/theme/app_textstyles.dart';
 import '../../dashboard_screen/model/task_model.dart';
 import '../../task_listing_screen/controller/task_listing_controller.dart';
 import '../controller/task_details_controller.dart';
+import 'edit_task_dialog.dart';
 
 class TaskStatusActions extends StatelessWidget {
   final Task task;
@@ -19,13 +20,6 @@ class TaskStatusActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusOptions = [
-      {'status': 'pending', 'label': 'Pending', 'icon': Icons.hourglass_empty_rounded, 'color': AppColors.warning},
-      {'status': 'in progress', 'label': 'In Progress', 'icon': Icons.sync_rounded, 'color': AppColors.info},
-      {'status': 'on hold', 'label': 'On Hold', 'icon': Icons.pause_circle_outline_rounded, 'color': AppColors.warning},
-      {'status': 'completed', 'label': 'Completed', 'icon': Icons.check_circle_outline_rounded, 'color': AppColors.success},
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -39,55 +33,142 @@ class TaskStatusActions extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: statusOptions.map((opt) {
-            final optStatus = opt['status'] as String;
-            final label = opt['label'] as String;
-            final icon = opt['icon'] as IconData;
-            final color = opt['color'] as Color;
-            final isSelected = task.status.toLowerCase() == optStatus.toLowerCase();
-
-            return InkWell(
-              onTap: () => controller.updateStatus(optStatus, taskListingController),
-              borderRadius: BorderRadius.circular(14),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? color.withValues(alpha: 0.2) : AppColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isSelected ? color : AppColors.border,
-                    width: isSelected ? 1.5 : 1.0,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.4),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: task.status.toLowerCase(),
+              dropdownColor: AppColors.surface,
+              isExpanded: true,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.primary,
+                size: 24,
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: 'pending',
+                  child: Row(
+                    children: [
+                      Icon(Icons.hourglass_empty_rounded, size: 18, color: AppColors.warning),
+                      SizedBox(width: 10),
+                      Text('Pending'),
+                    ],
                   ),
-                  boxShadow: isSelected
-                      ? [BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 4))]
-                      : null,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      icon,
-                      size: 18,
-                      color: isSelected ? color : AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      label,
-                      style: AppTextStyles.subtitle.copyWith(
-                        color: isSelected ? color : AppColors.textSecondary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+                DropdownMenuItem(
+                  value: 'in progress',
+                  child: Row(
+                    children: [
+                      Icon(Icons.sync_rounded, size: 18, color: AppColors.info),
+                      SizedBox(width: 10),
+                      Text('In Progress'),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'on hold',
+                  child: Row(
+                    children: [
+                      Icon(Icons.pause_circle_outline_rounded, size: 18, color: AppColors.warning),
+                      SizedBox(width: 10),
+                      Text('On Hold'),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'completed',
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline_rounded, size: 18, color: AppColors.success),
+                      SizedBox(width: 10),
+                      Text('Completed'),
+                    ],
+                  ),
+                ),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  controller.updateStatus(val, taskListingController);
+                }
+              },
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Action Buttons Row: Edit Task & Delete Task
+        Row(
+          children: [
+            // Edit Task Button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => EditTaskDialog.show(context, controller, taskListingController),
+                icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
+                label: Text(
+                  'Edit Task',
+                  style: AppTextStyles.button.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 4,
+                  shadowColor: AppColors.primary.withValues(alpha: 0.4),
                 ),
               ),
-            );
-          }).toList(),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Delete Task Button
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => controller.deleteTask(context, taskListingController),
+                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20),
+                label: Text(
+                  'Delete Task',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: AppColors.error, width: 1.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

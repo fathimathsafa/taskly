@@ -16,14 +16,18 @@ class DashboardHeader extends StatelessWidget {
         title: Text('Logout Confirmation', style: AppTextStyles.h3),
         content: Text(
           'Are you sure you want to log out of your Taskly workspace?',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           ElevatedButton(
@@ -34,7 +38,9 @@ class DashboardHeader extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               minimumSize: const Size(90, 40),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('Logout'),
           ),
@@ -57,9 +63,8 @@ class DashboardHeader extends StatelessWidget {
             Text(
               'Tasks',
               style: AppTextStyles.h1.copyWith(
-                fontWeight: FontWeight.w800,
+                //fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
-                fontSize: 26,
                 letterSpacing: -0.5,
               ),
             ),
@@ -75,45 +80,60 @@ class DashboardHeader extends StatelessWidget {
           ],
         ),
 
-        // Right: Single Clean Options Menu Icon
-        PopupMenuButton<String>(
-          icon: const Icon(
-            Icons.more_vert_rounded,
-            color: AppColors.textPrimary,
-            size: 22,
-          ),
-          color: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AppColors.border),
-          ),
-          onSelected: (val) {
-            if (val == 'task_list') {
-              Navigator.pushNamed(context, '/task-list');
-            } else if (val == 'logout') {
-              _showLogoutDialog(context);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'task_list',
-              child: Row(
-                children: [
-                  Icon(Icons.list_alt_rounded, size: 18, color: AppColors.primary),
-                  SizedBox(width: 10),
-                  Text('Task Listing Screen', style: TextStyle(color: AppColors.textPrimary)),
-                ],
+        // Right: Profile Avatar Icon & Logout Shutdown Button
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Profile Icon / Avatar
+            Tooltip(
+              message: 'Profile',
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pushNamed(context, '/profile'),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primaryLight,
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            const PopupMenuDivider(),
-            const PopupMenuItem(
-              value: 'logout',
-              child: Row(
-                children: [
-                  Icon(Icons.logout_rounded, size: 18, color: AppColors.error),
-                  SizedBox(width: 10),
-                  Text('Logout', style: TextStyle(color: AppColors.error)),
-                ],
+
+            const SizedBox(width: 12),
+
+            // Logout Shutdown Button
+            Tooltip(
+              message: 'Logout',
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _showLogoutDialog(context),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(
+                      Icons.power_settings_new_rounded,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

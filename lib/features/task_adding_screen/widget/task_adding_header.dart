@@ -9,32 +9,23 @@ class TaskAddingHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        InkWell(
-          onTap: () => Navigator.pop(context),
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: AppColors.textPrimary,
-              size: 18,
-            ),
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: AppColors.primary,
+            size: 24,
           ),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
         ),
         const SizedBox(width: 14),
-
         Expanded(
           child: Text(
             'Create New Task',
             style: AppTextStyles.h1.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
-              fontSize: 24,
+              letterSpacing: -0.5,
             ),
           ),
         ),

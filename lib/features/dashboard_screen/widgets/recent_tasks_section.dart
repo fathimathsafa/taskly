@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../../../core/widgets/task_priority_badge.dart';
+import '../../../../core/widgets/task_status_badge.dart';
 import '../../task_details_screen/view/task_details_screen.dart';
 import '../controller/dash_board_controller.dart';
 import '../model/task_model.dart';
@@ -82,7 +84,8 @@ class RecentTasksSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<DashboardController>();
-    final tasks = controller.filteredTasks;
+    final allTasks = controller.filteredTasks;
+    final tasks = allTasks.take(6).toList();
 
     if (tasks.isEmpty) {
       return Container(
@@ -162,6 +165,14 @@ class _TaskCard extends StatelessWidget {
     required this.dateStr,
   });
 
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$day-$month-$year';
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.read<DashboardController>();
@@ -181,246 +192,180 @@ class _TaskCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.9)),
+          border: Border.all(color: AppColors.border),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row 1: Title + Status Pill Badge
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  task.title,
-                  style: AppTextStyles.subtitle.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    height: 1.3,
+          children: [
+            // Row 1: Full-Width Title + Quick Actions Menu
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    task.title,
+                    style: AppTextStyles.subtitle.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      height: 1.35,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
+                const SizedBox(width: 6),
 
-              // Status Pill Badge (Matching Screenshot)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: statusBgColor,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: statusColor.withValues(alpha: 0.35),
+                // Quick Actions Menu
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                  color: AppColors.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  onSelected: (action) {
+                    if (action == 'delete') {
+                      controller.deleteTask(task.id);
+                    } else {
+                      controller.updateTaskStatus(task.id, action);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'pending',
+                      child: Text('Mark as Pending'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'in progress',
+                      child: Text('Mark as In Progress'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'on hold',
+                      child: Text('Mark as On Hold'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'completed',
+                      child: Text('Mark as Completed'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'Delete Task',
+                        style: TextStyle(color: AppColors.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // Row 2: Status & Priority Badges Side-by-side
+            Row(
+              children: [
+                TaskStatusBadge(status: task.status, fontSize: 11),
+                const SizedBox(width: 8),
+                TaskPriorityBadge(priority: task.priority, fontSize: 11),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Row 3: Assigned User Avatar & Name
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 11,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    task.assignee.isNotEmpty ? task.assignee[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                child: Row(
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    task.assignee.isNotEmpty ? task.assignee : 'Unassigned',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+            Divider(
+              color: AppColors.border.withValues(alpha: 0.6),
+              height: 1,
+              thickness: 1,
+            ),
+            const SizedBox(height: 10),
+
+            // Row 4: Created Date & Due Date
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      statusIcon,
+                    const Icon(
+                      Icons.access_time_rounded,
                       size: 13,
-                      color: statusColor,
+                      color: AppColors.textDisabled,
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      task.status.substring(0, 1).toUpperCase() +
-                          task.status.substring(1),
+                      'Created: ${_formatDate(task.createdAt)}',
                       style: AppTextStyles.caption.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Quick Actions Menu
-              PopupMenuButton<String>(
-                padding: EdgeInsets.zero,
-                icon: const Icon(
-                  Icons.more_vert_rounded,
-                  size: 18,
-                  color: AppColors.textSecondary,
-                ),
-                color: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.border),
-                ),
-                onSelected: (action) {
-                  if (action == 'delete') {
-                    controller.deleteTask(task.id);
-                  } else {
-                    controller.updateTaskStatus(task.id, action);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'pending',
-                    child: Text('Mark as Pending'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'in progress',
-                    child: Text('Mark as In Progress'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'on hold',
-                    child: Text('Mark as On Hold'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'completed',
-                    child: Text('Mark as Completed'),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text(
-                      'Delete Task',
-                      style: TextStyle(color: AppColors.error),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Row 2: Project Tag Line
-          Row(
-            children: [
-              const Icon(
-                Icons.folder_open_rounded,
-                size: 15,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  task.project,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // Row 3: Calendar Date & Priority Flag Line
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                dateStr,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Icon(
-                Icons.outlined_flag_rounded,
-                size: 16,
-                color: priorityColor,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                task.priority.substring(0, 1).toUpperCase() +
-                    task.priority.substring(1),
-                style: AppTextStyles.caption.copyWith(
-                  color: priorityColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-          Divider(
-            color: AppColors.border.withValues(alpha: 0.6),
-            height: 1,
-            thickness: 1,
-          ),
-          const SizedBox(height: 12),
-
-          // Row 4: Assignee & Reviewer Section (Side-by-side columns matching screenshot)
-          Row(
-            children: [
-              // Assignee Column
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Assignee',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.textDisabled,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      task.assignee,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
                   ],
                 ),
-              ),
 
-              // Reviewer Column
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 13,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: 5),
                     Text(
-                      'Reviewer',
+                      'Due: $dateStr',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      task.reviewer,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
 }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../../../core/widgets/task_priority_badge.dart';
+import '../../../../core/widgets/task_status_badge.dart';
 import '../../dashboard_screen/model/task_model.dart';
 import '../../task_details_screen/view/task_details_screen.dart';
 
@@ -28,15 +30,6 @@ class TaskCard extends StatelessWidget {
     return '$day $month $year';
   }
 
-  String _formatDateTime(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = _getMonthAbbr(date.month);
-    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
-    final minute = date.minute.toString().padLeft(2, '0');
-    final period = date.hour >= 12 ? 'PM' : 'AM';
-    return '$day $month, $hour:$minute $period';
-  }
-
   String _getMonthAbbr(int month) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[(month - 1) % 12];
@@ -45,10 +38,6 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompleted = task.status.toLowerCase() == 'completed';
-    final priorityColor = AppColors.priorityColor(task.priority);
-    final priorityBgColor = AppColors.priorityBgColor(task.priority);
-    final statusColor = AppColors.statusColor(task.status);
-    final statusBgColor = AppColors.statusBgColor(task.status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -83,74 +72,38 @@ class TaskCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Selection Checkbox, Title, and Action Options
+                // Row 1: Full-Width Title + Quick Options Menu
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Task Selection Checkbox
-                    GestureDetector(
-                      onTap: onSelectToggle,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 24,
-                        height: 24,
-                        margin: const EdgeInsets.only(top: 2, right: 12),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSelected ? AppColors.primary : Colors.transparent,
-                          border: Border.all(
-                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                            width: 1.8,
-                          ),
-                        ),
-                        child: isSelected
-                            ? const Icon(
-                                Icons.check_rounded,
-                                size: 16,
-                                color: Colors.white,
-                              )
-                            : null,
-                      ),
-                    ),
-
-                    // Title & Project Name
+                    // Full-Width Title
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task.title,
-                            style: AppTextStyles.h3.copyWith(
-                              decoration: isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                              decorationColor: AppColors.textSecondary,
-                              color: isCompleted
-                                  ? AppColors.textSecondary
-                                  : AppColors.textPrimary,
-                              height: 1.3,
-                            ),
-                          ),
-                          if (task.project.isNotEmpty) ...[
-                            const SizedBox(height: 3),
-                            Text(
-                              task.project,
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.primarySoft,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        task.title,
+                        style: AppTextStyles.subtitle.copyWith(
+                          decoration: isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          decorationColor: AppColors.textSecondary,
+                          color: isCompleted
+                              ? AppColors.textSecondary
+                              : AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          height: 1.35,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 6),
 
                     // Quick Action Menu
                     PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                       icon: const Icon(
                         Icons.more_vert_rounded,
                         color: AppColors.textSecondary,
-                        size: 20,
+                        size: 18,
                       ),
                       color: AppColors.surface,
                       shape: RoundedRectangleBorder(
@@ -231,134 +184,76 @@ class TaskCard extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                // Description
-                Text(
-                  task.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // Badges Row: Priority & Status
+                // Row 2: Status & Priority Badges Side-by-side
                 Row(
                   children: [
-                    // Priority Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: priorityBgColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: priorityColor.withValues(alpha: 0.4),
-                          width: 0.8,
+                    TaskStatusBadge(status: task.status),
+                    const SizedBox(width: 8),
+                    TaskPriorityBadge(priority: task.priority),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Row 3: Assigned User Avatar & Name
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 11,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        task.assignee.isNotEmpty ? task.assignee[0].toUpperCase() : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.flag_rounded,
-                            size: 12,
-                            color: priorityColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            task.priority.toUpperCase(),
-                            style: AppTextStyles.badge.copyWith(
-                              color: priorityColor,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-
                     const SizedBox(width: 8),
-
-                    // Status Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusBgColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: statusColor.withValues(alpha: 0.4),
-                          width: 0.8,
+                    Expanded(
+                      child: Text(
+                        task.assignee.isNotEmpty ? task.assignee : 'Unassigned',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: statusColor,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            task.status.toUpperCase(),
-                            style: AppTextStyles.badge.copyWith(
-                              color: statusColor,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 14),
-                const Divider(color: AppColors.divider, height: 1),
                 const SizedBox(height: 12),
+                const Divider(color: AppColors.divider, height: 1),
+                const SizedBox(height: 10),
 
-                // Bottom Metadata Row: Due Date, Assigned User, Created Date
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                // Row 4: Created Date & Due Date
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Assigned User
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircleAvatar(
-                          radius: 11,
-                          backgroundColor: AppColors.primaryDark,
-                          child: Text(
-                            task.assignee.isNotEmpty ? task.assignee[0].toUpperCase() : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 13,
+                          color: AppColors.textDisabled,
                         ),
-                        const SizedBox(width: 6),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 130),
-                          child: Text(
-                            task.assignee,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Created: ${_formatDate(task.createdAt)}',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textDisabled,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
 
-                    // Due Date
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -372,25 +267,8 @@ class TaskCard extends StatelessWidget {
                           'Due: ${_formatDate(task.dueDate)}',
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Created Date
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time_rounded,
-                          size: 13,
-                          color: AppColors.textDisabled,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Created: ${_formatDateTime(task.createdAt)}',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.textDisabled,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
