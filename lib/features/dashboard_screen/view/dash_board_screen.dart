@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../profile_screen/controller/profile_controller.dart';
 import '../controller/dash_board_controller.dart';
 import '../widgets/recent_tasks_section.dart';
 import '../widgets/task_summary_card.dart';
@@ -269,13 +270,11 @@ class DashBoardScreen extends StatelessWidget {
                           width: 1.5,
                         ),
                       ),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         radius: 16,
                         backgroundColor: AppColors.primaryLight,
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: AppColors.primary,
-                          size: 20,
+                        backgroundImage: AssetImage(
+                          context.watch<ProfileController>().profileImagePath,
                         ),
                       ),
                     ),

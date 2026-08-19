@@ -69,32 +69,57 @@ class ProfileScreen extends StatelessWidget {
                         children: [
                           const SizedBox(height: 12),
 
-                          // Profile Photo Avatar with Gold Border Ring
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.primary,
-                                width: 2.0,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.2),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
+                          // Profile Photo Avatar with Gold Border Ring & Edit Camera Badge
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.primary,
+                                    width: 2.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.2),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: const CircleAvatar(
-                              radius: 50,
-                              backgroundColor: AppColors.primaryLight,
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 56,
-                                color: AppColors.primary,
+                                child: CircleAvatar(
+                                  radius: 52,
+                                  backgroundColor: AppColors.primaryLight,
+                                  backgroundImage: AssetImage(controller.profileImagePath),
+                                ),
                               ),
-                            ),
+                              Positioned(
+                                right: 4,
+                                bottom: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.15),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
 
                           const SizedBox(height: 16),

@@ -5,10 +5,18 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
 
 class ProfileController extends ChangeNotifier {
+  String _profileImagePath = 'assets/images/user_avatar.jpg';
+
   String get userName => 'Admin User';
   String get userEmail => AuthStorageService.getEmail() ?? 'admin@example.com';
   String get userRole => 'Task Administrator';
   String get memberSince => 'August 2026';
+  String get profileImagePath => _profileImagePath;
+
+  void updateProfileImage(String path) {
+    _profileImagePath = path;
+    notifyListeners();
+  }
 
   void logout(BuildContext context) {
     showDialog(
