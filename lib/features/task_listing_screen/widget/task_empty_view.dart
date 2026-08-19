@@ -30,7 +30,6 @@ class TaskEmptyView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon Container with Soft Glow
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -46,7 +45,6 @@ class TaskEmptyView extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Title
           Text(
             title,
             style: AppTextStyles.h2.copyWith(color: AppColors.textPrimary),
@@ -54,7 +52,6 @@ class TaskEmptyView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Subtitle
           Text(
             subtitle,
             style: AppTextStyles.bodySmall.copyWith(
@@ -65,7 +62,6 @@ class TaskEmptyView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Actions Row
           Wrap(
             spacing: 12,
             runSpacing: 10,

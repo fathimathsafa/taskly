@@ -42,7 +42,6 @@ class TaskSummaryCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Icon Badge Container
               Container(
                 width: 38,
                 height: 38,
@@ -58,7 +57,6 @@ class TaskSummaryCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
 
-              // Count & Title Column
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

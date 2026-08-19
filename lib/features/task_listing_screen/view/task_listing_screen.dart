@@ -3,15 +3,12 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
 import '../controller/task_listing_controller.dart';
-import '../widget/add_task_dialog.dart';
 import '../widget/task_card.dart';
 import '../widget/task_empty_view.dart';
 import '../widget/task_error_view.dart';
 import '../widget/task_listing_header.dart';
 import '../widget/task_loading_view.dart';
 
-/// TaskListingScreen implemented strictly as a [StatelessWidget]
-/// featuring a single, smooth full-page ScrollView with Pull-to-Refresh.
 class TaskListingScreen extends StatelessWidget {
   const TaskListingScreen({super.key});
 
@@ -50,7 +47,6 @@ class TaskListingScreen extends StatelessWidget {
             centerTitle: false,
           ),
 
-          // Add Task Button (Floating Action Button)
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => Navigator.pushNamed(context, '/add-task'),
             backgroundColor: AppColors.primary,
@@ -82,7 +78,6 @@ class TaskListingScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Compact Header (Title, Stats, Search, Filter Button)
                         TaskListingHeader(
                           controller: controller,
                           searchController: searchController,
@@ -90,7 +85,6 @@ class TaskListingScreen extends StatelessWidget {
 
                         const SizedBox(height: 16),
 
-                        // State-dependent List Body
                         _buildBodyContent(context, controller),
 
                         const SizedBox(height: 80), // Bottom padding for FAB space
@@ -106,14 +100,11 @@ class TaskListingScreen extends StatelessWidget {
     );
   }
 
-  /// Builds state-dependent content within the page ScrollView
   Widget _buildBodyContent(BuildContext context, TaskListingController controller) {
-    // 1. Loading State
     if (controller.isLoading) {
       return const TaskLoadingView();
     }
 
-    // 2. Error State with Retry Option
     if (controller.hasError) {
       return Padding(
         padding: const EdgeInsets.only(top: 16.0),
@@ -126,7 +117,6 @@ class TaskListingScreen extends StatelessWidget {
 
     final tasks = controller.filteredTasks;
 
-    // 3. Empty State
     if (tasks.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 16.0),
@@ -140,12 +130,10 @@ class TaskListingScreen extends StatelessWidget {
           onResetFilters: controller.searchQuery.isNotEmpty || controller.selectedStatus != 'All' || controller.selectedPriority != 'All'
               ? () => controller.resetFilters()
               : null,
-          onAddTask: () => AddTaskDialog.show(context, controller),
         ),
       );
     }
 
-    // 4. Task Listing State
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

@@ -85,7 +85,6 @@ class CustomButton extends StatelessWidget {
       );
     }
 
-    // Filled Gradient / Custom Colored Primary Button
     return Container(
       height: 52,
       decoration: BoxDecoration(

@@ -33,7 +33,6 @@ class TaskDetailsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Action 1: Change Status with Hive persistence, loading & error handling
   Future<void> updateStatus(
     String newStatus, {
     DashboardController? dashboardController,
@@ -54,7 +53,6 @@ class TaskDetailsController extends ChangeNotifier {
       await _service.updateTaskStatus(updatedTask.id, newStatus);
       _task = updatedTask;
 
-      // Synchronize changes across active feature controllers
       dashboardController?.loadTasks();
       taskListingController?.loadTasks();
     } catch (e) {
@@ -67,7 +65,6 @@ class TaskDetailsController extends ChangeNotifier {
     }
   }
 
-  /// Action 2: Edit Task Details with Hive persistence, loading & error handling
   Future<bool> updateTaskDetails({
     required String title,
     required String description,
@@ -96,7 +93,6 @@ class TaskDetailsController extends ChangeNotifier {
       await _service.updateTask(updatedTask);
       _task = updatedTask;
 
-      // Synchronize changes across active feature controllers
       dashboardController?.loadTasks();
       taskListingController?.loadTasks();
 
@@ -112,7 +108,6 @@ class TaskDetailsController extends ChangeNotifier {
     }
   }
 
-  /// Action 3: Delete Task with user confirmation, Hive persistence & feedback
   Future<void> deleteTask(
     BuildContext context, {
     DashboardController? dashboardController,
@@ -171,7 +166,6 @@ class TaskDetailsController extends ChangeNotifier {
     try {
       await _service.deleteTask(taskId);
 
-      // Synchronize deletion across active feature controllers
       dashboardController?.loadTasks();
       taskListingController?.loadTasks();
 

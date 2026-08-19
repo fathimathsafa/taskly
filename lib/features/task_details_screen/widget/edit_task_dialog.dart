@@ -3,10 +3,47 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
 import '../../dashboard_screen/controller/dash_board_controller.dart';
+import '../../dashboard_screen/model/task_model.dart';
 import '../../task_listing_screen/controller/task_listing_controller.dart';
 import '../controller/task_details_controller.dart';
 
-class EditTaskDialog extends StatefulWidget {
+class EditTaskFormController extends ChangeNotifier {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  late final TextEditingController titleController;
+  late final TextEditingController descriptionController;
+  late final TextEditingController assigneeController;
+
+  late String priority;
+  DateTime? dueDate;
+
+  EditTaskFormController(Task? task) {
+    titleController = TextEditingController(text: task?.title ?? '');
+    descriptionController = TextEditingController(text: task?.description ?? '');
+    assigneeController = TextEditingController(text: task?.assignee ?? '');
+    priority = task?.priority ?? 'medium';
+    dueDate = task?.dueDate;
+  }
+
+  void setPriority(String newPriority) {
+    priority = newPriority;
+    notifyListeners();
+  }
+
+  void setDueDate(DateTime? date) {
+    dueDate = date;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    assigneeController.dispose();
+    super.dispose();
+  }
+}
+
+class EditTaskDialog extends StatelessWidget {
   final TaskDetailsController controller;
   final TaskListingController taskListingController;
 
@@ -28,49 +65,20 @@ class EditTaskDialog extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => EditTaskDialog(
-        controller: controller,
-        taskListingController: taskListingController,
+      builder: (_) => ChangeNotifierProvider(
+        create: (_) => EditTaskFormController(controller.task),
+        child: EditTaskDialog(
+          controller: controller,
+          taskListingController: taskListingController,
+        ),
       ),
     );
   }
 
-  @override
-  State<EditTaskDialog> createState() => _EditTaskDialogState();
-}
-
-class _EditTaskDialogState extends State<EditTaskDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _assigneeController;
-
-  late String _priority;
-  DateTime? _dueDate;
-
-  @override
-  void initState() {
-    super.initState();
-    final task = widget.controller.task;
-    _titleController = TextEditingController(text: task?.title ?? '');
-    _descriptionController = TextEditingController(text: task?.description ?? '');
-    _assigneeController = TextEditingController(text: task?.assignee ?? '');
-    _priority = task?.priority ?? 'medium';
-    _dueDate = task?.dueDate;
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _assigneeController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDueDate() async {
+  Future<void> _pickDueDate(BuildContext context, EditTaskFormController formController) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _dueDate ?? DateTime.now().add(const Duration(days: 3)),
+      initialDate: formController.dueDate ?? DateTime.now().add(const Duration(days: 3)),
       firstDate: DateTime.now().subtract(const Duration(days: 30)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
@@ -92,30 +100,28 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
     );
 
     if (picked != null) {
-      setState(() {
-        _dueDate = picked;
-      });
+      formController.setDueDate(picked);
     }
   }
 
-  Future<void> _submit() async {
-    if (_formKey.currentState?.validate() ?? false) {
+  Future<void> _submit(BuildContext context, EditTaskFormController formController) async {
+    if (formController.formKey.currentState?.validate() ?? false) {
       DashboardController? dashboardController;
       try {
         dashboardController = context.read<DashboardController>();
       } catch (_) {}
 
-      final success = await widget.controller.updateTaskDetails(
-        title: _titleController.text,
-        description: _descriptionController.text,
-        priority: _priority,
-        assignee: _assigneeController.text,
-        dueDate: _dueDate,
+      final success = await controller.updateTaskDetails(
+        title: formController.titleController.text,
+        description: formController.descriptionController.text,
+        priority: formController.priority,
+        assignee: formController.assigneeController.text,
+        dueDate: formController.dueDate,
         dashboardController: dashboardController,
-        taskListingController: widget.taskListingController,
+        taskListingController: taskListingController,
       );
 
-      if (mounted) {
+      if (context.mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -132,10 +138,10 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
             ),
           );
           Navigator.pop(context);
-        } else if (widget.controller.hasError) {
+        } else if (controller.hasError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.controller.errorMessage ?? 'Failed to update task'),
+              content: Text(controller.errorMessage ?? 'Failed to update task'),
               backgroundColor: AppColors.error,
             ),
           );
@@ -147,17 +153,17 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final formController = context.watch<EditTaskFormController>();
 
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 16, 24, bottomInset + 24),
       child: SingleChildScrollView(
         child: Form(
-          key: _formKey,
+          key: formController.formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Handle
               Center(
                 child: Container(
                   width: 36,
@@ -170,7 +176,6 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
               ),
               const SizedBox(height: 18),
 
-              // Title Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -183,22 +188,20 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Task Title
               Text('Task Title *', style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
               const SizedBox(height: 6),
               TextFormField(
-                controller: _titleController,
+                controller: formController.titleController,
                 style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                 decoration: _inputDecoration('Title'),
                 validator: (val) => val == null || val.trim().isEmpty ? 'Title is required' : null,
               ),
               const SizedBox(height: 14),
 
-              // Description
               Text('Description *', style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
               const SizedBox(height: 6),
               TextFormField(
-                controller: _descriptionController,
+                controller: formController.descriptionController,
                 maxLines: 3,
                 style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                 decoration: _inputDecoration('Description'),
@@ -206,12 +209,11 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
               ),
               const SizedBox(height: 14),
 
-              // Priority Selector
               Text('Priority', style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
               const SizedBox(height: 6),
               Row(
                 children: ['low', 'medium', 'high'].map((p) {
-                  final isSelected = _priority.toLowerCase() == p.toLowerCase();
+                  final isSelected = formController.priority.toLowerCase() == p.toLowerCase();
                   final color = AppColors.priorityColor(p);
                   return Expanded(
                     child: Padding(
@@ -230,7 +232,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
                         selected: isSelected,
                         selectedColor: color,
                         backgroundColor: AppColors.surfaceSubtle,
-                        onSelected: (_) => setState(() => _priority = p),
+                        onSelected: (_) => formController.setPriority(p),
                       ),
                     ),
                   );
@@ -238,22 +240,20 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
               ),
               const SizedBox(height: 14),
 
-              // Assignee Field
               Text('Assigned User *', style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
               const SizedBox(height: 6),
               TextFormField(
-                controller: _assigneeController,
+                controller: formController.assigneeController,
                 style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                 decoration: _inputDecoration('Assignee'),
                 validator: (val) => val == null || val.trim().isEmpty ? 'Assignee is required' : null,
               ),
               const SizedBox(height: 14),
 
-              // Due Date Picker
               Text('Due Date', style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
               const SizedBox(height: 6),
               InkWell(
-                onTap: _pickDueDate,
+                onTap: () => _pickDueDate(context, formController),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -266,11 +266,11 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _dueDate == null
+                        formController.dueDate == null
                             ? 'Select due date'
-                            : '${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}',
+                            : '${formController.dueDate!.day}/${formController.dueDate!.month}/${formController.dueDate!.year}',
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: _dueDate == null ? AppColors.textDisabled : AppColors.textPrimary,
+                          color: formController.dueDate == null ? AppColors.textDisabled : AppColors.textPrimary,
                         ),
                       ),
                       const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 20),
@@ -285,7 +285,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
-                  onPressed: _submit,
+                  onPressed: () => _submit(context, formController),
                   icon: const Icon(Icons.check_rounded, color: Colors.white),
                   label: Text('Save Changes', style: AppTextStyles.button.copyWith(color: Colors.white)),
                   style: ElevatedButton.styleFrom(

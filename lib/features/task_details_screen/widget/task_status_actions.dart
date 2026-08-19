@@ -109,17 +109,46 @@ class TaskStatusActions extends StatelessWidget {
                   ),
                 ),
               ],
-              onChanged: (val) {
-                if (val != null) {
+              onChanged: (val) async {
+                if (val != null && val != task.status) {
                   DashboardController? dashboardController;
                   try {
                     dashboardController = context.read<DashboardController>();
                   } catch (_) {}
-                  controller.updateStatus(
+                  await controller.updateStatus(
                     val,
                     dashboardController: dashboardController,
                     taskListingController: taskListingController,
                   );
+
+                  if (context.mounted) {
+                    if (!controller.hasError) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(Icons.check_circle_rounded, color: Colors.white),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Status updated to "${val.toUpperCase()}"!',
+                                style: AppTextStyles.subtitle.copyWith(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: AppColors.success,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(controller.errorMessage ?? 'Failed to update task status'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                  }
                 }
               },
             ),
@@ -128,10 +157,8 @@ class TaskStatusActions extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        // Action Buttons Row: Edit Task & Delete Task
         Row(
           children: [
-            // Edit Task Button
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () => EditTaskDialog.show(context, controller, taskListingController),
@@ -157,7 +184,6 @@ class TaskStatusActions extends StatelessWidget {
 
             const SizedBox(width: 12),
 
-            // Delete Task Button
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () {

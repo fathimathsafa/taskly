@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taskly/core/constants/app_constants.dart';
 import 'package:taskly/core/routes/app_router.dart';
-import 'package:taskly/core/routes/app_routes.dart';
 import 'package:taskly/core/services/auth_storage_service.dart';
 import 'package:taskly/core/services/task_storage_service.dart';
 import 'package:taskly/core/theme/app_theme.dart';
@@ -12,6 +11,7 @@ import 'package:taskly/features/profile_screen/controller/profile_controller.dar
 import 'package:taskly/features/task_adding_screen/controller/task_adding_controller.dart';
 import 'package:taskly/features/task_details_screen/controller/task_details_controller.dart';
 import 'package:taskly/features/task_listing_screen/controller/task_listing_controller.dart';
+import 'package:taskly/features/splash_screen/controller/splash_screen_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SplashScreenController()),
         ChangeNotifierProvider(create: (_) => LoginScreenController()),
         ChangeNotifierProvider(create: (_) => DashboardController()),
         ChangeNotifierProvider(create: (_) => TaskListingController()),
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
         title: AppStrings.appName,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        initialRoute: isLoggedIn ? AppRoutes.dashboard : AppRouter.initialRoute,
+        initialRoute: AppRouter.initialRoute,
         routes: AppRouter.routes,
         onGenerateRoute: AppRouter.onGenerateRoute,
       ),

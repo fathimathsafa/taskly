@@ -32,7 +32,6 @@ class TaskErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Error Icon Banner
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -67,7 +66,6 @@ class TaskErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Retry Option Button
           ElevatedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded, size: 20),

@@ -3,14 +3,16 @@ import 'package:taskly/core/routes/app_routes.dart';
 import '../../features/auth/login_Screen/view/login_screen.dart';
 import '../../features/dashboard_screen/view/dash_board_screen.dart';
 import '../../features/profile_screen/view/profile_screen.dart';
+import '../../features/splash_screen/view/splash_screen.dart';
 import '../../features/task_adding_screen/view/task_adding_screen.dart';
 import '../../features/task_details_screen/view/task_details_screen.dart';
 import '../../features/task_listing_screen/view/task_listing_screen.dart';
 
 class AppRouter {
-  static const String initialRoute = AppRoutes.login;
+  static const String initialRoute = AppRoutes.splash;
 
   static Map<String, WidgetBuilder> get routes => {
+        AppRoutes.splash: (context) => const SplashScreen(),
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.dashboard: (context) => const DashBoardScreen(),
         AppRoutes.taskList: (context) => const TaskListingScreen(),
@@ -21,6 +23,11 @@ class AppRouter {
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case AppRoutes.splash:
+        return MaterialPageRoute(
+          builder: (_) => const SplashScreen(),
+          settings: settings,
+        );
       case AppRoutes.login:
         return MaterialPageRoute(
           builder: (_) => const LoginScreen(),

@@ -72,7 +72,6 @@ class TaskCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Row 1: Full-Width Title + Quick Options Menu
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

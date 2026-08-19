@@ -30,7 +30,6 @@ class DashboardController extends ChangeNotifier {
   int get inProgressTasks => _service.calculateInProgressCount(_allTasks);
   int get completedTasks => _service.calculateCompletedCount(_allTasks);
 
-  /// Exposes strictly recently added tasks (most recent first)
   List<Task> get recentTasks => _recentTasks;
   List<Task> get filteredTasks => _recentTasks;
 

@@ -1,5 +1,5 @@
-import '../../../core/services/task_storage_service.dart';
-import '../../dashboard_screen/model/task_model.dart';
+import '../services/task_storage_service.dart';
+import '../../features/dashboard_screen/model/task_model.dart';
 
 abstract class ITaskRepository {
   List<Task> getAllTasks();

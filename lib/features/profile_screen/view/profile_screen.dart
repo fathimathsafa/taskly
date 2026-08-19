@@ -38,7 +38,6 @@ class ProfileScreen extends StatelessWidget {
           ),
           body: Stack(
             children: [
-              // Ambient Glow Background Accent
               Positioned(
                 top: -size.width * 0.35,
                 right: -size.width * 0.25,
@@ -69,7 +68,6 @@ class ProfileScreen extends StatelessWidget {
                         children: [
                           const SizedBox(height: 12),
 
-                          // Profile Photo Avatar with Gold Border Ring & Edit Camera Badge
                           Stack(
                             alignment: Alignment.bottomRight,
                             children: [
@@ -124,7 +122,6 @@ class ProfileScreen extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // User Name
                           Text(
                             controller.userName,
                             style: AppTextStyles.h1.copyWith(
@@ -135,7 +132,6 @@ class ProfileScreen extends StatelessWidget {
 
                           const SizedBox(height: 4),
 
-                          // User Email
                           Text(
                             controller.userEmail,
                             style: AppTextStyles.bodyMedium.copyWith(
@@ -146,7 +142,6 @@ class ProfileScreen extends StatelessWidget {
 
                           const SizedBox(height: 28),
 
-                          // User Details Card Block
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(20),

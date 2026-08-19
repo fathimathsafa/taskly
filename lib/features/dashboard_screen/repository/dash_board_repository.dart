@@ -1,4 +1,4 @@
-import '../../task_adding_screen/repository/task_repository.dart';
+import '../../../core/repository/task_repository.dart';
 import '../model/task_model.dart';
 
 abstract class IDashBoardRepository {

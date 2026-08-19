@@ -39,7 +39,6 @@ class TaskDetailsGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Row 1: Assigned User & Due Date
         Row(
           children: [
             Expanded(
@@ -64,7 +63,6 @@ class TaskDetailsGrid extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // Row 2: Created Date
         _buildMetaTile(
           icon: Icons.access_time_rounded,
           iconColor: AppColors.textSecondary,

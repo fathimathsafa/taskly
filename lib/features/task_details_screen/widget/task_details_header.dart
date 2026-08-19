@@ -31,7 +31,6 @@ class TaskDetailsHeader extends StatelessWidget {
         ),
         const SizedBox(width: 14),
 
-        // Screen Title
         Expanded(
           child: Text(
             'Task Details',
@@ -42,7 +41,6 @@ class TaskDetailsHeader extends StatelessWidget {
           ),
         ),
 
-        // Action: Edit Task Button
         IconButton(
           tooltip: 'Edit Task',
           onPressed: () {
@@ -57,7 +55,6 @@ class TaskDetailsHeader extends StatelessWidget {
           ),
         ),
 
-        // Action: Delete Task Button
         IconButton(
           tooltip: 'Delete Task',
           onPressed: () => controller.deleteTask(context, taskListingController: taskListingController),

@@ -24,8 +24,8 @@ class TaskListingHeader extends StatelessWidget {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final statusFilters = ['All', 'Pending', 'In Progress', 'On Hold', 'Completed'];
-            final priorityFilters = ['All', 'High', 'Medium', 'Low'];
+            final statusFilters = ['All', 'Pending', 'In Progress', 'Completed'];
+            final priorityFilters = ['All', 'Low', 'Medium', 'High'];
 
             return Padding(
               padding: EdgeInsets.only(
@@ -40,7 +40,6 @@ class TaskListingHeader extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Handle
                     Center(
                       child: Container(
                         width: 36,
@@ -56,15 +55,16 @@ class TaskListingHeader extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Filter & Sort Tasks', style: AppTextStyles.h2),
-                        if (controller.selectedStatus != 'All' || controller.selectedPriority != 'All')
+                        Text('Filter Tasks', style: AppTextStyles.h2),
+                        if (controller.hasActiveFilter)
                           TextButton(
                             onPressed: () {
+                              searchController.clear();
                               controller.resetFilters();
-                              Navigator.pop(context);
+                              setModalState(() {});
                             },
                             child: Text(
-                              'Reset All',
+                              'Clear All',
                               style: AppTextStyles.caption.copyWith(
                                 color: AppColors.error,
                                 fontWeight: FontWeight.bold,
@@ -75,8 +75,7 @@ class TaskListingHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Status Section
-                    Text('Status', style: AppTextStyles.subtitle.copyWith(color: AppColors.textSecondary)),
+                    Text('Status Filter', style: AppTextStyles.subtitle.copyWith(color: AppColors.textSecondary)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
@@ -109,8 +108,7 @@ class TaskListingHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Priority Section
-                    Text('Priority', style: AppTextStyles.subtitle.copyWith(color: AppColors.textSecondary)),
+                    Text('Priority Filter', style: AppTextStyles.subtitle.copyWith(color: AppColors.textSecondary)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
@@ -141,9 +139,89 @@ class TaskListingHeader extends StatelessWidget {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // Apply Button
+                    Text('Due Date Filter', style: AppTextStyles.subtitle.copyWith(color: AppColors.textSecondary)),
+                    const SizedBox(height: 10),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: controller.selectedDueDate ?? DateTime.now(),
+                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: ThemeData.light().copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors.primary,
+                                  onPrimary: Colors.white,
+                                  surface: AppColors.surface,
+                                  onSurface: AppColors.textPrimary,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          controller.setDueDateFilter(picked);
+                          setModalState(() {});
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: controller.selectedDueDate != null
+                              ? AppColors.primary.withValues(alpha: 0.1)
+                              : AppColors.surfaceSubtle,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: controller.selectedDueDate != null
+                                ? AppColors.primary
+                                : AppColors.border,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_month_rounded,
+                              size: 20,
+                              color: controller.selectedDueDate != null
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                controller.selectedDueDate != null
+                                    ? '${controller.selectedDueDate!.day.toString().padLeft(2, '0')}/${controller.selectedDueDate!.month.toString().padLeft(2, '0')}/${controller.selectedDueDate!.year}'
+                                    : 'Select Due Date',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: controller.selectedDueDate != null
+                                      ? AppColors.primary
+                                      : AppColors.textSecondary,
+                                  fontWeight: controller.selectedDueDate != null
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            if (controller.selectedDueDate != null)
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.primary),
+                                onPressed: () {
+                                  controller.setDueDateFilter(null);
+                                  setModalState(() {});
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -151,9 +229,17 @@ class TaskListingHeader extends StatelessWidget {
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 4,
+                          shadowColor: AppColors.primary.withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
-                        child: Text('Apply Filters', style: AppTextStyles.button.copyWith(color: Colors.white)),
+                        child: Text(
+                          'Apply Filters',
+                          style: AppTextStyles.button.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -168,12 +254,11 @@ class TaskListingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilter = controller.selectedStatus != 'All' || controller.selectedPriority != 'All';
+    final hasActiveFilter = controller.hasActiveFilter;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Search Bar + Filter Button (Compact, Space-Saving Layout)
         Row(
           children: [
             Expanded(
@@ -191,7 +276,7 @@ class TaskListingHeader extends StatelessWidget {
                   onChanged: (val) => controller.setSearchQuery(val),
                   style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Search tasks...',
+                    hintText: 'Search title or description...',
                     hintStyle: AppTextStyles.bodyMedium.copyWith(
                       color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
@@ -214,7 +299,6 @@ class TaskListingHeader extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            // Compact Filter Button
             InkWell(
               onTap: () => _showFilterModal(context),
               borderRadius: BorderRadius.circular(14),
@@ -251,7 +335,6 @@ class TaskListingHeader extends StatelessWidget {
           ],
         ),
 
-        // Active Filter Indicator Strip (Shown only if filter is active)
         if (hasActiveFilter) ...[
           const SizedBox(height: 10),
           SingleChildScrollView(
@@ -269,6 +352,7 @@ class TaskListingHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
+
                 if (controller.selectedPriority != 'All') ...[
                   Chip(
                     label: Text('Priority: ${controller.selectedPriority}'),
@@ -280,9 +364,40 @@ class TaskListingHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
+
+                if (controller.selectedDueDate != null) ...[
+                  Chip(
+                    label: Text('Due: ${controller.selectedDueDate!.day}/${controller.selectedDueDate!.month}/${controller.selectedDueDate!.year}'),
+                    backgroundColor: AppColors.primaryLight,
+                    labelStyle: TextStyle(color: AppColors.primarySoft, fontSize: 11, fontWeight: FontWeight.bold),
+                    deleteIcon: const Icon(Icons.close_rounded, size: 14, color: AppColors.primarySoft),
+                    onDeleted: () => controller.setDueDateFilter(null),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide.none),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                if (controller.searchQuery.isNotEmpty) ...[
+                  Chip(
+                    label: Text('Search: "${controller.searchQuery}"'),
+                    backgroundColor: AppColors.primaryLight,
+                    labelStyle: TextStyle(color: AppColors.primarySoft, fontSize: 11, fontWeight: FontWeight.bold),
+                    deleteIcon: const Icon(Icons.close_rounded, size: 14, color: AppColors.primarySoft),
+                    onDeleted: () {
+                      searchController.clear();
+                      controller.setSearchQuery('');
+                    },
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide.none),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
                 TextButton(
-                  onPressed: () => controller.resetFilters(),
-                  child: Text('Reset', style: AppTextStyles.caption.copyWith(color: AppColors.error)),
+                  onPressed: () {
+                    searchController.clear();
+                    controller.resetFilters();
+                  },
+                  child: Text('Clear All', style: AppTextStyles.caption.copyWith(color: AppColors.error, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

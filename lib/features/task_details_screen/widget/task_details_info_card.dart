@@ -39,12 +39,10 @@ class TaskDetailsInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Badges Row (Priority & Status)
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              // Status Badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
@@ -75,7 +73,6 @@ class TaskDetailsInfoCard extends StatelessWidget {
                 ),
               ),
 
-              // Priority Badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
@@ -103,7 +100,6 @@ class TaskDetailsInfoCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Title
           Text(
             task.title,
             style: AppTextStyles.h1.copyWith(
@@ -117,7 +113,6 @@ class TaskDetailsInfoCard extends StatelessWidget {
           const Divider(color: AppColors.divider),
           const SizedBox(height: 12),
 
-          // Description Section
           Text(
             'Description',
             style: AppTextStyles.subtitle.copyWith(

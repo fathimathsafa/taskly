@@ -208,7 +208,6 @@ class _TaskCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row 1: Full-Width Title + Quick Actions Menu
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -225,7 +224,6 @@ class _TaskCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
 
-                // Quick Actions Menu
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -328,7 +326,6 @@ class _TaskCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Row 4: Created Date & Due Date
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

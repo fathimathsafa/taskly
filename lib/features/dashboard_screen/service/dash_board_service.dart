@@ -7,14 +7,12 @@ class DashBoardService {
   DashBoardService({IDashBoardRepository? repository})
       : _repository = repository ?? DashBoardRepository();
 
-  /// Fetches tasks sorted by creation date (most recent first)
   List<Task> getAllSortedTasks() {
     final tasks = _repository.getDashboardTasks();
     tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return tasks;
   }
 
-  /// Returns only the recently added tasks (default top 5)
   List<Task> getRecentAddedTasks({
     String? filter = 'all',
     String searchQuery = '',
@@ -47,7 +45,6 @@ class DashBoardService {
     return filtered.take(limit).toList();
   }
 
-  /// Statistics calculation
   int calculateTotalCount(List<Task> tasks) => tasks.length;
 
   int calculatePendingCount(List<Task> tasks) {

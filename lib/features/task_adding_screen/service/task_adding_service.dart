@@ -1,5 +1,5 @@
 import '../../../core/errors/app_exception.dart';
-import '../repository/task_repository.dart';
+import '../../../core/repository/task_repository.dart';
 import '../../dashboard_screen/model/task_model.dart';
 
 class TaskAddingService {

@@ -18,7 +18,6 @@ class LoginScreen extends StatelessWidget {
           backgroundColor: AppColors.background,
           body: Stack(
             children: [
-              // Ambient Glow Background Accents
               Positioned(
                 top: -size.width * 0.35,
                 right: -size.width * 0.25,
@@ -54,7 +53,6 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
 
-              // Main View Content
               SafeArea(
                 child: Center(
                   child: LayoutBuilder(
@@ -81,12 +79,10 @@ class LoginScreen extends StatelessWidget {
                                 children: [
                                   const Spacer(),
 
-                                  // Modular Login Header (Title & Subtitle)
                                   LoginHeader(isWide: isWide),
 
                                   const SizedBox(height: 36),
 
-                                  // Modular Login Form (Fields, Validation, Loading & Actions)
                                   LoginForm(controller: controller),
 
                                   const Spacer(),

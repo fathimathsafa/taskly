@@ -162,7 +162,6 @@ class TaskFormFields extends StatelessWidget {
 
         const SizedBox(height: 18),
 
-        // 4. Initial Status Selector Field
         _buildFieldLabel('Initial Status *'),
         const SizedBox(height: 6),
         Container(
@@ -210,7 +209,6 @@ class TaskFormFields extends StatelessWidget {
 
         const SizedBox(height: 18),
 
-        // 5. Assigned User Field
         _buildFieldLabel('Assigned User *'),
         const SizedBox(height: 6),
         TextField(

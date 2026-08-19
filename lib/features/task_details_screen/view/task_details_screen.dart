@@ -88,7 +88,6 @@ class TaskDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Error Notification Banner
                           if (controller.hasError) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -128,7 +127,6 @@ class TaskDetailsScreen extends StatelessWidget {
 
                           const SizedBox(height: 24),
 
-                          // Interactive Change Status & Action Buttons
                           TaskStatusActions(
                             task: currentTask,
                             controller: controller,
@@ -143,7 +141,6 @@ class TaskDetailsScreen extends StatelessWidget {
                 ),
               ),
 
-              // Loading Overlay Indicator
               if (controller.isLoading)
                 Container(
                   color: Colors.black.withValues(alpha: 0.25),

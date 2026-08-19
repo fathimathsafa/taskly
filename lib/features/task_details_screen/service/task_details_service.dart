@@ -7,7 +7,6 @@ class TaskDetailsService {
   TaskDetailsService({TaskStorageService? storageService})
       : _storageService = storageService ?? TaskStorageService();
 
-  /// Updates task status directly in Hive storage
   Future<void> updateTaskStatus(String id, String status) async {
     final tasks = _storageService.getAllTasks();
     final index = tasks.indexWhere((t) => t.id == id);
@@ -20,17 +19,14 @@ class TaskDetailsService {
     }
   }
 
-  /// Updates full task details directly in Hive storage
   Future<void> updateTask(Task task) async {
     await _storageService.updateTask(task);
   }
 
-  /// Deletes task from Hive storage by ID
   Future<void> deleteTask(String id) async {
     await _storageService.deleteTask(id);
   }
 
-  /// Fetches a fresh task instance by ID from Hive storage
   Task? getTaskById(String id) {
     try {
       final tasks = _storageService.getAllTasks();

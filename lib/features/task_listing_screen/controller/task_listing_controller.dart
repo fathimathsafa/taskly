@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/errors/app_exception.dart';
-import '../../task_adding_screen/repository/task_repository.dart';
 import '../../dashboard_screen/model/task_model.dart';
+import '../../../core/repository/task_repository.dart';
 
 enum TaskListingState { initial, loading, loaded, error }
 
@@ -11,11 +11,12 @@ class TaskListingController extends ChangeNotifier {
   List<Task> _tasks = [];
   TaskListingState _state = TaskListingState.initial;
   String _errorMessage = '';
-  
+
   final Set<String> _selectedTaskIds = {};
   String _searchQuery = '';
   String _selectedStatus = 'All';
   String _selectedPriority = 'All';
+  DateTime? _selectedDueDate;
   bool _simulateError = false;
 
   TaskListingController({ITaskRepository? repository})
@@ -29,7 +30,7 @@ class TaskListingController extends ChangeNotifier {
   bool get isLoading => _state == TaskListingState.loading;
   bool get hasError => _state == TaskListingState.error;
   String get errorMessage => _errorMessage;
-  
+
   Set<String> get selectedTaskIds => Set.unmodifiable(_selectedTaskIds);
   bool isTaskSelected(String taskId) => _selectedTaskIds.contains(taskId);
   int get selectedCount => _selectedTaskIds.length;
@@ -38,9 +39,15 @@ class TaskListingController extends ChangeNotifier {
   String get searchQuery => _searchQuery;
   String get selectedStatus => _selectedStatus;
   String get selectedPriority => _selectedPriority;
+  DateTime? get selectedDueDate => _selectedDueDate;
   bool get simulateError => _simulateError;
 
-  // Fetch / Load Tasks from TaskRepository
+  bool get hasActiveFilter =>
+      _selectedStatus != 'All' ||
+      _selectedPriority != 'All' ||
+      _selectedDueDate != null ||
+      _searchQuery.trim().isNotEmpty;
+
   Future<void> loadTasks() async {
     _state = TaskListingState.loading;
     _errorMessage = '';
@@ -50,7 +57,7 @@ class TaskListingController extends ChangeNotifier {
       if (_simulateError) {
         throw const StorageException('Failed to load tasks. Storage system encountered an error.');
       }
-      
+
       _tasks = _repository.getAllTasks();
       _state = TaskListingState.loaded;
     } catch (e) {
@@ -61,36 +68,37 @@ class TaskListingController extends ChangeNotifier {
     }
   }
 
-  // Pull to Refresh
   Future<void> refreshTasks() async {
     await loadTasks();
   }
 
-  // Retry Action
   void retry() {
     _simulateError = false;
     loadTasks();
   }
 
-  // Toggle Error State Simulation
   void toggleSimulateError() {
     _simulateError = !_simulateError;
     loadTasks();
   }
 
-  // Filtering & Search
   List<Task> get filteredTasks {
     return _tasks.where((task) {
       final query = _searchQuery.toLowerCase().trim();
       final matchesSearch = query.isEmpty ||
           task.title.toLowerCase().contains(query) ||
-          task.description.toLowerCase().contains(query) ||
-          task.assignee.toLowerCase().contains(query) ||
-          task.project.toLowerCase().contains(query);
+          task.description.toLowerCase().contains(query);
 
       bool matchesStatus = true;
       if (_selectedStatus != 'All') {
-        matchesStatus = task.status.toLowerCase() == _selectedStatus.toLowerCase();
+        final status = _selectedStatus.toLowerCase();
+        if (status == 'pending') {
+          matchesStatus = task.status.toLowerCase() == 'pending' ||
+              task.status.toLowerCase() == 'not started' ||
+              task.status.toLowerCase() == 'on hold';
+        } else {
+          matchesStatus = task.status.toLowerCase() == status;
+        }
       }
 
       bool matchesPriority = true;
@@ -98,7 +106,15 @@ class TaskListingController extends ChangeNotifier {
         matchesPriority = task.priority.toLowerCase() == _selectedPriority.toLowerCase();
       }
 
-      return matchesSearch && matchesStatus && matchesPriority;
+      bool matchesDate = true;
+      if (_selectedDueDate != null) {
+        matchesDate = task.dueDate != null &&
+            task.dueDate!.year == _selectedDueDate!.year &&
+            task.dueDate!.month == _selectedDueDate!.month &&
+            task.dueDate!.day == _selectedDueDate!.day;
+      }
+
+      return matchesSearch && matchesStatus && matchesPriority && matchesDate;
     }).toList();
   }
 
@@ -117,10 +133,16 @@ class TaskListingController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDueDateFilter(DateTime? date) {
+    _selectedDueDate = date;
+    notifyListeners();
+  }
+
   void resetFilters() {
     _searchQuery = '';
     _selectedStatus = 'All';
     _selectedPriority = 'All';
+    _selectedDueDate = null;
     notifyListeners();
   }
 
@@ -144,7 +166,6 @@ class TaskListingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Operations via TaskRepository
   Future<void> updateTaskStatus(String id, String newStatus) async {
     final index = _tasks.indexWhere((t) => t.id == id);
     if (index != -1) {
@@ -166,34 +187,6 @@ class TaskListingController extends ChangeNotifier {
     notifyListeners();
     try {
       await _repository.deleteTask(id);
-    } catch (_) {}
-  }
-
-  Future<void> addTask({
-    required String title,
-    required String description,
-    required String priority,
-    required String status,
-    required String assignee,
-    required DateTime? dueDate,
-    String? project,
-  }) async {
-    final newTask = Task(
-      id: 'TSK-${(1000 + DateTime.now().millisecondsSinceEpoch % 9000)}',
-      title: title.trim(),
-      description: description.trim(),
-      status: status,
-      priority: priority,
-      assignee: assignee.trim().isEmpty ? 'Admin User' : assignee.trim(),
-      dueDate: dueDate,
-      createdAt: DateTime.now(),
-      project: project?.trim().isNotEmpty == true ? project!.trim() : 'Taskly Workspace',
-    );
-
-    _tasks.insert(0, newTask);
-    notifyListeners();
-    try {
-      await _repository.saveTask(newTask);
     } catch (_) {}
   }
 

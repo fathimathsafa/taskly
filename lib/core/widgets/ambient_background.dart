@@ -15,7 +15,6 @@ class AmbientBackground extends StatelessWidget {
 
     return Stack(
       children: [
-        // Top Right Ambient Glow Orb
         Positioned(
           top: -size.width * 0.35,
           right: -size.width * 0.25,
@@ -34,7 +33,6 @@ class AmbientBackground extends StatelessWidget {
           ),
         ),
 
-        // Main Screen Body Content
         child,
       ],
     );
