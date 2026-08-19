@@ -1,79 +1,123 @@
 import 'package:flutter/material.dart';
-import '../../dashboard_screen/model/task_model.dart';
-import '../../task_listing_screen/controller/task_listing_controller.dart';
+import '../../../../core/errors/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../dashboard_screen/controller/dash_board_controller.dart';
+import '../../dashboard_screen/model/task_model.dart';
+import '../../task_listing_screen/controller/task_listing_controller.dart';
+import '../service/task_details_service.dart';
 
 class TaskDetailsController extends ChangeNotifier {
+  final TaskDetailsService _service;
+
   Task? _task;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  TaskDetailsController({TaskDetailsService? service})
+      : _service = service ?? TaskDetailsService();
 
   Task? get task => _task;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get hasError => _errorMessage != null && _errorMessage!.isNotEmpty;
 
   void setTask(Task t) {
     _task = t;
+    _errorMessage = null;
     notifyListeners();
   }
 
-  // Action 1: Change Status
-  void updateStatus(String newStatus, TaskListingController taskListingController) {
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  /// Action 1: Change Status with Hive persistence, loading & error handling
+  Future<void> updateStatus(
+    String newStatus, {
+    DashboardController? dashboardController,
+    TaskListingController? taskListingController,
+  }) async {
     if (_task == null) return;
 
-    final updatedTask = _task!.copyWith(
-      status: newStatus,
-      updatedAt: DateTime.now(),
-    );
-
-    _task = updatedTask;
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // Sync with main TaskListingController
-    taskListingController.updateTaskStatus(updatedTask.id, newStatus);
+    try {
+      final updatedTask = _task!.copyWith(
+        status: newStatus,
+        updatedAt: DateTime.now(),
+      );
+
+      await _service.updateTaskStatus(updatedTask.id, newStatus);
+      _task = updatedTask;
+
+      // Synchronize changes across active feature controllers
+      dashboardController?.loadTasks();
+      taskListingController?.loadTasks();
+    } catch (e) {
+      _errorMessage = e is AppException
+          ? e.message
+          : 'Failed to update task status: ${e.toString()}';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  // Action 2: Edit Task Details
-  void updateTaskDetails({
+  /// Action 2: Edit Task Details with Hive persistence, loading & error handling
+  Future<bool> updateTaskDetails({
     required String title,
     required String description,
     required String priority,
     required String assignee,
     required DateTime? dueDate,
-    required TaskListingController taskListingController,
-  }) {
-    if (_task == null) return;
+    DashboardController? dashboardController,
+    TaskListingController? taskListingController,
+  }) async {
+    if (_task == null) return false;
 
-    final updatedTask = _task!.copyWith(
-      title: title.trim(),
-      description: description.trim(),
-      priority: priority,
-      assignee: assignee.trim(),
-      dueDate: dueDate,
-      updatedAt: DateTime.now(),
-    );
-
-    _task = updatedTask;
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // Sync back with task list controller
-    final index = taskListingController.tasks.indexWhere((t) => t.id == updatedTask.id);
-    if (index != -1) {
-      taskListingController.deleteTask(updatedTask.id);
-      taskListingController.addTask(
-        title: updatedTask.title,
-        description: updatedTask.description,
-        priority: updatedTask.priority,
-        status: updatedTask.status,
-        assignee: updatedTask.assignee,
-        dueDate: updatedTask.dueDate,
-        project: updatedTask.project,
+    try {
+      final updatedTask = _task!.copyWith(
+        title: title.trim(),
+        description: description.trim(),
+        priority: priority,
+        assignee: assignee.trim(),
+        dueDate: dueDate,
+        updatedAt: DateTime.now(),
       );
+
+      await _service.updateTask(updatedTask);
+      _task = updatedTask;
+
+      // Synchronize changes across active feature controllers
+      dashboardController?.loadTasks();
+      taskListingController?.loadTasks();
+
+      return true;
+    } catch (e) {
+      _errorMessage = e is AppException
+          ? e.message
+          : 'Failed to update task details: ${e.toString()}';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // Action 3: Delete Task
+  /// Action 3: Delete Task with user confirmation, Hive persistence & feedback
   Future<void> deleteTask(
-    BuildContext context,
-    TaskListingController taskListingController,
-  ) async {
+    BuildContext context, {
+    DashboardController? dashboardController,
+    TaskListingController? taskListingController,
+  }) async {
     if (_task == null) return;
 
     final confirm = await showDialog<bool>(
@@ -98,7 +142,10 @@ class TaskDetailsController extends ChangeNotifier {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('Cancel', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -114,26 +161,55 @@ class TaskDetailsController extends ChangeNotifier {
       ),
     );
 
-    if (confirm == true && context.mounted) {
-      final taskId = _task!.id;
-      taskListingController.deleteTask(taskId);
+    if (confirm != true || !context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white),
-              const SizedBox(width: 10),
-              Text('Task deleted successfully', style: AppTextStyles.subtitle.copyWith(color: Colors.white)),
-            ],
+    final taskId = _task!.id;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _service.deleteTask(taskId);
+
+      // Synchronize deletion across active feature controllers
+      dashboardController?.loadTasks();
+      taskListingController?.loadTasks();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+                Text(
+                  'Task deleted successfully',
+                  style: AppTextStyles.subtitle.copyWith(color: Colors.white),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-
-      Navigator.pop(context);
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      _errorMessage = e is AppException
+          ? e.message
+          : 'Failed to delete task: ${e.toString()}';
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

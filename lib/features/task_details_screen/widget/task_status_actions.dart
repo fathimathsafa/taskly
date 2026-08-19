@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../dashboard_screen/controller/dash_board_controller.dart';
 import '../../dashboard_screen/model/task_model.dart';
 import '../../task_listing_screen/controller/task_listing_controller.dart';
 import '../controller/task_details_controller.dart';
@@ -109,7 +111,15 @@ class TaskStatusActions extends StatelessWidget {
               ],
               onChanged: (val) {
                 if (val != null) {
-                  controller.updateStatus(val, taskListingController);
+                  DashboardController? dashboardController;
+                  try {
+                    dashboardController = context.read<DashboardController>();
+                  } catch (_) {}
+                  controller.updateStatus(
+                    val,
+                    dashboardController: dashboardController,
+                    taskListingController: taskListingController,
+                  );
                 }
               },
             ),
@@ -150,7 +160,17 @@ class TaskStatusActions extends StatelessWidget {
             // Delete Task Button
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => controller.deleteTask(context, taskListingController),
+                onPressed: () {
+                  DashboardController? dashboardController;
+                  try {
+                    dashboardController = context.read<DashboardController>();
+                  } catch (_) {}
+                  controller.deleteTask(
+                    context,
+                    dashboardController: dashboardController,
+                    taskListingController: taskListingController,
+                  );
+                },
                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20),
                 label: Text(
                   'Delete Task',

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
+import '../../dashboard_screen/controller/dash_board_controller.dart';
 import '../../task_listing_screen/controller/task_listing_controller.dart';
 import '../controller/task_details_controller.dart';
 
@@ -96,33 +98,49 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState?.validate() ?? false) {
-      widget.controller.updateTaskDetails(
+      DashboardController? dashboardController;
+      try {
+        dashboardController = context.read<DashboardController>();
+      } catch (_) {}
+
+      final success = await widget.controller.updateTaskDetails(
         title: _titleController.text,
         description: _descriptionController.text,
         priority: _priority,
         assignee: _assigneeController.text,
         dueDate: _dueDate,
+        dashboardController: dashboardController,
         taskListingController: widget.taskListingController,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white),
-              const SizedBox(width: 10),
-              Text('Task updated successfully!', style: AppTextStyles.subtitle.copyWith(color: Colors.white)),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-
-      Navigator.pop(context);
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Text('Task updated successfully!', style: AppTextStyles.subtitle.copyWith(color: Colors.white)),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+          Navigator.pop(context);
+        } else if (widget.controller.hasError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(widget.controller.errorMessage ?? 'Failed to update task'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
     }
   }
 

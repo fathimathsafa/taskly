@@ -18,7 +18,7 @@ class DashBoardService {
   List<Task> getRecentAddedTasks({
     String? filter = 'all',
     String searchQuery = '',
-    int limit = 100,
+    int limit = 5,
   }) {
     final sortedTasks = getAllSortedTasks();
 

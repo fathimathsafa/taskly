@@ -60,7 +60,7 @@ class TaskDetailsHeader extends StatelessWidget {
         // Action: Delete Task Button
         IconButton(
           tooltip: 'Delete Task',
-          onPressed: () => controller.deleteTask(context, taskListingController),
+          onPressed: () => controller.deleteTask(context, taskListingController: taskListingController),
           icon: const Icon(
             Icons.delete_outline_rounded,
             color: AppColors.error,

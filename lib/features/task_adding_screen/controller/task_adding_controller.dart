@@ -173,11 +173,11 @@ class TaskAddingController extends ChangeNotifier {
 
         resetForm();
 
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.taskList,
-          (route) => route.settings.name == AppRoutes.dashboard || route.isFirst,
-        );
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+        }
       }
     } catch (e) {
       _isSubmitting = false;

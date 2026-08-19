@@ -19,9 +19,7 @@ class TaskDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final taskListingController = context.watch<TaskListingController>();
-
     final Task? taskArg = initialTask ?? ModalRoute.of(context)?.settings.arguments as Task?;
 
     return Consumer<TaskDetailsController>(
@@ -37,6 +35,15 @@ class TaskDetailsScreen extends StatelessWidget {
         if (currentTask == null) {
           return Scaffold(
             backgroundColor: AppColors.background,
+            appBar: AppBar(
+              backgroundColor: AppColors.background,
+              elevation: 0,
+              leading: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+              ),
+              title: const Text('Task Details'),
+            ),
             body: Center(
               child: Text(
                 'No task details available.',
@@ -71,25 +78,6 @@ class TaskDetailsScreen extends StatelessWidget {
           ),
           body: Stack(
             children: [
-              // Ambient Glow Accent Background
-              Positioned(
-                top: -size.width * 0.35,
-                right: -size.width * 0.25,
-                child: Container(
-                  width: size.width * 0.9,
-                  height: size.width * 0.9,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.16),
-                        AppColors.primary.withValues(alpha: 0.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
               SafeArea(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -100,6 +88,38 @@ class TaskDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Error Notification Banner
+                          if (controller.hasError) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      controller.errorMessage ?? 'An error occurred',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: AppColors.error,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.error),
+                                    onPressed: () => controller.clearError(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+
                           TaskDetailsInfoCard(task: currentTask),
 
                           const SizedBox(height: 20),
@@ -108,7 +128,7 @@ class TaskDetailsScreen extends StatelessWidget {
 
                           const SizedBox(height: 24),
 
-                          // 4. Interactive Change Status Buttons
+                          // Interactive Change Status & Action Buttons
                           TaskStatusActions(
                             task: currentTask,
                             controller: controller,
@@ -122,6 +142,17 @@ class TaskDetailsScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // Loading Overlay Indicator
+              if (controller.isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
             ],
           ),
         );

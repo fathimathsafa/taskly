@@ -42,7 +42,7 @@ class DashboardController extends ChangeNotifier {
       _recentTasks = _service.getRecentAddedTasks(
         filter: _selectedFilter,
         searchQuery: _searchQuery,
-        limit: 100,
+        limit: 5,
       );
     } catch (_) {
       _allTasks = [];
@@ -58,7 +58,7 @@ class DashboardController extends ChangeNotifier {
     _recentTasks = _service.getRecentAddedTasks(
       filter: _selectedFilter,
       searchQuery: _searchQuery,
-      limit: 100,
+      limit: 5,
     );
     notifyListeners();
   }
@@ -68,7 +68,7 @@ class DashboardController extends ChangeNotifier {
     _recentTasks = _service.getRecentAddedTasks(
       filter: _selectedFilter,
       searchQuery: _searchQuery,
-      limit: 100,
+      limit: 5,
     );
     notifyListeners();
   }
