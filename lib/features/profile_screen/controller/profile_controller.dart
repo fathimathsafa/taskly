@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../../core/services/auth_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
 
 class ProfileController extends ChangeNotifier {
-  String userName = 'Admin User';
-  String userEmail = 'admin@example.com';
-  String userRole = 'Task Administrator';
-  String memberSince = 'August 2026';
+  String get userName => 'Admin User';
+  String get userEmail => AuthStorageService.getEmail() ?? 'admin@example.com';
+  String get userRole => 'Task Administrator';
+  String get memberSince => 'August 2026';
 
   void logout(BuildContext context) {
     showDialog(
@@ -32,9 +34,12 @@ class ProfileController extends ChangeNotifier {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(dialogContext);
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              await AuthStorageService.clearSession();
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,

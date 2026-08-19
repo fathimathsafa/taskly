@@ -1,73 +1,52 @@
 import 'package:flutter/material.dart';
-import '../../task_adding_screen/repository/task_repository.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/services/auth_storage_service.dart';
 import '../model/task_model.dart';
+import '../service/dash_board_service.dart';
 
 class DashboardController extends ChangeNotifier {
-  final ITaskRepository _repository;
-  List<Task> _tasks = [];
+  final DashBoardService _service;
+
+  List<Task> _allTasks = [];
+  List<Task> _recentTasks = [];
   bool _isLoading = false;
 
   String? _selectedFilter = 'all';
   String _searchQuery = '';
 
-  DashboardController({ITaskRepository? repository})
-      : _repository = repository ?? TaskRepository() {
+  DashboardController({DashBoardService? service})
+      : _service = service ?? DashBoardService() {
     loadTasks();
   }
 
   bool get isLoading => _isLoading;
-  List<Task> get tasks => List.unmodifiable(_tasks);
+  List<Task> get tasks => List.unmodifiable(_allTasks);
 
   String? get selectedFilter => _selectedFilter;
   String get searchQuery => _searchQuery;
 
-  int get totalTasks => _tasks.length;
+  int get totalTasks => _service.calculateTotalCount(_allTasks);
+  int get pendingTasks => _service.calculatePendingCount(_allTasks);
+  int get inProgressTasks => _service.calculateInProgressCount(_allTasks);
+  int get completedTasks => _service.calculateCompletedCount(_allTasks);
 
-  int get pendingTasks =>
-      _tasks.where((t) => t.status.toLowerCase() == 'pending' || t.status.toLowerCase() == 'on hold').length;
-
-  int get inProgressTasks =>
-      _tasks.where((t) => t.status.toLowerCase() == 'in progress').length;
-
-  int get completedTasks =>
-      _tasks.where((t) => t.status.toLowerCase() == 'completed').length;
-
-  List<Task> get recentTasks => filteredTasks;
-
-  List<Task> get filteredTasks {
-    return _tasks.where((t) {
-      final filter = _selectedFilter?.toLowerCase() ?? 'all';
-      bool matchesFilter = true;
-
-      if (filter == 'pending' || filter == 'not started') {
-        matchesFilter = t.status.toLowerCase() == 'pending' || t.status.toLowerCase() == 'not started';
-      } else if (filter == 'in progress') {
-        matchesFilter = t.status.toLowerCase() == 'in progress';
-      } else if (filter == 'on hold') {
-        matchesFilter = t.status.toLowerCase() == 'on hold';
-      } else if (filter == 'completed') {
-        matchesFilter = t.status.toLowerCase() == 'completed';
-      }
-
-      final query = _searchQuery.trim().toLowerCase();
-      final matchesSearch = query.isEmpty ||
-          t.title.toLowerCase().contains(query) ||
-          t.project.toLowerCase().contains(query) ||
-          t.description.toLowerCase().contains(query) ||
-          t.assignee.toLowerCase().contains(query);
-
-      return matchesFilter && matchesSearch;
-    }).toList();
-  }
+  /// Exposes strictly recently added tasks (most recent first)
+  List<Task> get recentTasks => _recentTasks;
+  List<Task> get filteredTasks => _recentTasks;
 
   void loadTasks() {
     _isLoading = true;
     notifyListeners();
     try {
-      _tasks = _repository.getAllTasks();
+      _allTasks = _service.getAllSortedTasks();
+      _recentTasks = _service.getRecentAddedTasks(
+        filter: _selectedFilter,
+        searchQuery: _searchQuery,
+        limit: 100,
+      );
     } catch (_) {
-      _tasks = [];
+      _allTasks = [];
+      _recentTasks = [];
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -76,6 +55,21 @@ class DashboardController extends ChangeNotifier {
 
   void setSearchQuery(String query) {
     _searchQuery = query;
+    _recentTasks = _service.getRecentAddedTasks(
+      filter: _selectedFilter,
+      searchQuery: _searchQuery,
+      limit: 100,
+    );
+    notifyListeners();
+  }
+
+  void setFilter(String? filter) {
+    _selectedFilter = filter;
+    _recentTasks = _service.getRecentAddedTasks(
+      filter: _selectedFilter,
+      searchQuery: _searchQuery,
+      limit: 100,
+    );
     notifyListeners();
   }
 
@@ -88,55 +82,35 @@ class DashboardController extends ChangeNotifier {
     String? assignee,
     String? reviewer,
   }) async {
-    final newTask = Task(
-      id: 'TSK-${(1000 + DateTime.now().millisecondsSinceEpoch % 9000)}',
-      title: title.trim(),
-      description: description.trim(),
-      status: 'pending',
+    await _service.addTask(
+      title: title,
+      description: description,
       priority: priority,
       dueDate: dueDate,
-      createdAt: DateTime.now(),
-      project: (project != null && project.isNotEmpty) ? project : 'Taskly Workspace',
-      assignee: (assignee != null && assignee.isNotEmpty) ? assignee : 'Admin User',
-      reviewer: (reviewer != null && reviewer.isNotEmpty) ? reviewer : 'Admin User',
+      project: project,
+      assignee: assignee,
+      reviewer: reviewer,
     );
-
-    _tasks.insert(0, newTask);
-    notifyListeners();
-    try {
-      await _repository.saveTask(newTask);
-    } catch (_) {}
+    loadTasks();
   }
 
   Future<void> updateTaskStatus(String id, String newStatus) async {
-    final index = _tasks.indexWhere((t) => t.id == id);
+    final index = _allTasks.indexWhere((t) => t.id == id);
     if (index != -1) {
-      final updatedTask = _tasks[index].copyWith(
-        status: newStatus,
-        updatedAt: DateTime.now(),
-      );
-      _tasks[index] = updatedTask;
-      notifyListeners();
-      try {
-        await _repository.updateTask(updatedTask);
-      } catch (_) {}
+      await _service.updateTaskStatus(id, newStatus);
+      loadTasks();
     }
   }
 
   Future<void> deleteTask(String id) async {
-    _tasks.removeWhere((t) => t.id == id);
-    notifyListeners();
-    try {
-      await _repository.deleteTask(id);
-    } catch (_) {}
+    await _service.deleteTask(id);
+    loadTasks();
   }
 
-  void setFilter(String? filter) {
-    _selectedFilter = filter;
-    notifyListeners();
-  }
-
-  void logout(BuildContext context) {
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+  Future<void> logout(BuildContext context) async {
+    await AuthStorageService.clearSession();
+    if (context.mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    }
   }
 }

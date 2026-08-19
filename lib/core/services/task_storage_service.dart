@@ -8,11 +8,9 @@ class TaskStorageService {
   static Future<void> init() async {
     try {
       await Hive.initFlutter();
-      final box = await Hive.openBox(_boxName);
-      
-      await box.delete('TSK-1001');
-      await box.delete('TSK-1002');
-      await box.delete('TSK-1003');
+      if (!Hive.isBoxOpen(_boxName)) {
+        await Hive.openBox(_boxName);
+      }
     } catch (e) {
       throw StorageException('Failed to initialize local task storage: ${e.toString()}');
     }
@@ -44,6 +42,7 @@ class TaskStorageService {
   Future<void> saveTask(Task task) async {
     try {
       await _box.put(task.id, task.toMap());
+      await _box.flush();
     } catch (e) {
       throw StorageException('Failed to save task: ${e.toString()}');
     }
@@ -55,6 +54,7 @@ class TaskStorageService {
         throw NotFoundException('Task with ID ${task.id} not found.');
       }
       await _box.put(task.id, task.toMap());
+      await _box.flush();
     } catch (e) {
       if (e is AppException) rethrow;
       throw StorageException('Failed to update task: ${e.toString()}');
@@ -67,6 +67,7 @@ class TaskStorageService {
         throw NotFoundException('Task with ID $id not found.');
       }
       await _box.delete(id);
+      await _box.flush();
     } catch (e) {
       if (e is AppException) rethrow;
       throw StorageException('Failed to delete task: ${e.toString()}');

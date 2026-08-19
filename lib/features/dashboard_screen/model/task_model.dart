@@ -20,9 +20,9 @@ class Task {
     this.dueDate,
     DateTime? createdAt,
     DateTime? updatedAt,
-    this.project = '{SW} DashX Accounts Portal',
-    this.assignee = 'Fathima Nasrin V K',
-    this.reviewer = 'Fathima Nasrin V K',
+    required this.project,
+    required this.assignee,
+    this.reviewer = '',
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? (createdAt ?? DateTime.now());
 
@@ -80,9 +80,9 @@ class Task {
       dueDate: map['dueDate'] != null ? DateTime.tryParse(map['dueDate'] as String) : null,
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),
       updatedAt: map['updatedAt'] != null ? DateTime.parse(map['updatedAt'] as String) : DateTime.now(),
-      project: map['project'] as String? ?? 'Taskly Project',
-      assignee: map['assignee'] as String? ?? 'Admin User',
-      reviewer: map['reviewer'] as String? ?? 'Admin User',
+      project: map['project'] as String? ?? 'General',
+      assignee: map['assignee'] as String? ?? 'Unassigned',
+      reviewer: map['reviewer'] as String? ?? '',
     );
   }
 }

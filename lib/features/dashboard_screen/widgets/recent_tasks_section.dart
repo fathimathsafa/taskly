@@ -84,8 +84,7 @@ class RecentTasksSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<DashboardController>();
-    final allTasks = controller.filteredTasks;
-    final tasks = allTasks.take(6).toList();
+    final tasks = controller.filteredTasks;
 
     if (tasks.isEmpty) {
       final isSearching = controller.searchQuery.trim().isNotEmpty;
@@ -109,19 +108,22 @@ class RecentTasksSection extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               isSearching
-                  ? 'No tasks matching "${controller.searchQuery}"'
+                  ? 'No tasks found.'
                   : (isFiltered ? 'No tasks in this category' : 'No tasks available.'),
               style: AppTextStyles.h3.copyWith(
                 color: AppColors.textPrimary,
                 fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
-              isSearching || isFiltered
-                  ? 'Try clearing your search query or adjusting your filters.'
-                  : 'Get started by creating your first task!',
+              isSearching
+                  ? 'No tasks match your search title or description.'
+                  : (isFiltered
+                      ? 'Try adjusting your filters.'
+                      : 'Get started by creating your first task!'),
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),

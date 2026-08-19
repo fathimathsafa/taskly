@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/services/auth_storage_service.dart';
 
 const String kMockEmail = 'admin@example.com';
 const String kMockPassword = '123456';
@@ -54,12 +55,15 @@ class LoginScreenController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     final email = emailController.text.trim();
     final password = passwordController.text;
 
     if (email == kMockEmail && password == kMockPassword) {
+      final userToken = 'taskly_jwt_token_${DateTime.now().millisecondsSinceEpoch}';
+      await AuthStorageService.saveSession(token: userToken, email: email);
+
       _isLoading = false;
       notifyListeners();
       return true;

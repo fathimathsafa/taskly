@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_textstyles.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_textfiled.dart';
+import '../../../dashboard_screen/controller/dash_board_controller.dart';
+import '../../../task_listing_screen/controller/task_listing_controller.dart';
 import '../controller/login_screen_controller.dart';
 import 'forgot_password_sheet.dart';
 
@@ -129,6 +132,10 @@ class LoginForm extends StatelessWidget {
               onPressed: () async {
                 final success = await controller.handleLogin();
                 if (success && context.mounted) {
+                  try {
+                    context.read<DashboardController>().loadTasks();
+                    context.read<TaskListingController>().loadTasks();
+                  } catch (_) {}
                   Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
                 }
               },

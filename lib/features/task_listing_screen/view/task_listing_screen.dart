@@ -17,8 +17,6 @@ class TaskListingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Consumer<TaskListingController>(
       builder: (context, controller, child) {
         final searchController = TextEditingController.fromValue(
@@ -68,64 +66,40 @@ class TaskListingScreen extends StatelessWidget {
             ),
           ),
 
-          body: Stack(
-            children: [
-              // Ambient Glow Background Accents
-              Positioned(
-                top: -size.width * 0.3,
-                right: -size.width * 0.2,
-                child: Container(
-                  width: size.width * 0.85,
-                  height: size.width * 0.85,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.15),
-                        AppColors.primary.withValues(alpha: 0.0),
+          body: SafeArea(
+            child: RefreshIndicator(
+              onRefresh: () => controller.refreshTasks(),
+              color: AppColors.primary,
+              backgroundColor: AppColors.surface,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Compact Header (Title, Stats, Search, Filter Button)
+                        TaskListingHeader(
+                          controller: controller,
+                          searchController: searchController,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // State-dependent List Body
+                        _buildBodyContent(context, controller),
+
+                        const SizedBox(height: 80), // Bottom padding for FAB space
                       ],
                     ),
                   ),
                 ),
               ),
-
-              // Full Screen Single ScrollView with Pull-to-Refresh
-              SafeArea(
-                child: RefreshIndicator(
-                  onRefresh: () => controller.refreshTasks(),
-                  color: AppColors.primary,
-                  backgroundColor: AppColors.surface,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1100),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Compact Header (Title, Stats, Search, Filter Button)
-                            TaskListingHeader(
-                              controller: controller,
-                              searchController: searchController,
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // State-dependent List Body
-                            _buildBodyContent(context, controller),
-
-                            const SizedBox(height: 80), // Bottom padding for FAB space
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         );
       },

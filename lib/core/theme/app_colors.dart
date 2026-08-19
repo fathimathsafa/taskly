@@ -69,32 +69,37 @@ class AppColors {
   static const Color info = Color(0xFF2563EB);
 
   // ---------------- Task Status ----------------
-  static const Color statusPending = Color(0xFFC58A00);
+  static const Color statusPending = Color(0xFFD97706);
   static const Color statusInProgress = Color(0xFF2563EB);
   static const Color statusCompleted = Color(0xFF059669);
+  static const Color statusOnHold = Color(0xFF7C3AED);
 
-  static const Color statusPendingBg = Color(0xFFFFF8E7);
+  static const Color statusPendingBg = Color(0xFFFFFBEB);
   static const Color statusInProgressBg = Color(0xFFEFF6FF);
   static const Color statusCompletedBg = Color(0xFFECFDF5);
+  static const Color statusOnHoldBg = Color(0xFFF5F3FF);
 
   // ---------------- Task Priority ----------------
   static const Color priorityLow = Color(0xFF059669);
-  static const Color priorityMedium = Color(0xFFC58A00);
+  static const Color priorityMedium = Color(0xFFD97706);
   static const Color priorityHigh = Color(0xFFE11D48);
 
   static const Color priorityLowBg = Color(0xFFECFDF5);
-  static const Color priorityMediumBg = Color(0xFFFFF8E7);
+  static const Color priorityMediumBg = Color(0xFFFFFBEB);
   static const Color priorityHighBg = Color(0xFFFFF1F2);
 
   // ---------------- Helpers ----------------
   static Color statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
+      case 'not started':
         return statusPending;
       case 'in progress':
         return statusInProgress;
       case 'completed':
         return statusCompleted;
+      case 'on hold':
+        return statusOnHold;
       default:
         return textSecondary;
     }
@@ -103,11 +108,14 @@ class AppColors {
   static Color statusBgColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
+      case 'not started':
         return statusPendingBg;
       case 'in progress':
         return statusInProgressBg;
       case 'completed':
         return statusCompletedBg;
+      case 'on hold':
+        return statusOnHoldBg;
       default:
         return border;
     }

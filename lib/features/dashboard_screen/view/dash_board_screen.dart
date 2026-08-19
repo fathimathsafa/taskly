@@ -101,7 +101,6 @@ class DashBoardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Filter Chips inside Modal
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -136,7 +135,6 @@ class DashBoardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Task List inside Modal
                     Expanded(
                       child: tasks.isEmpty
                           ? Center(
@@ -235,159 +233,132 @@ class DashBoardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<DashboardController>();
-    final size = MediaQuery.of(context).size;
+    return Consumer<DashboardController>(
+      builder: (context, controller, child) {
+        final searchController = TextEditingController.fromValue(
+          TextEditingValue(
+            text: controller.searchQuery,
+            selection: TextSelection.collapsed(
+              offset: controller.searchQuery.length,
+            ),
+          ),
+        );
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-        leadingWidth: 64,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Center(
-            child: Tooltip(
-              message: 'Profile',
-              child: InkWell(
-                onTap: () => Navigator.pushNamed(context, '/profile'),
-                borderRadius: BorderRadius.circular(22),
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primaryLight,
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppColors.primary,
-                      size: 20,
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            automaticallyImplyLeading: false,
+            leadingWidth: 64,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Center(
+                child: Tooltip(
+                  message: 'Profile',
+                  child: InkWell(
+                    onTap: () => Navigator.pushNamed(context, '/profile'),
+                    borderRadius: BorderRadius.circular(22),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryLight,
+                        child: Icon(
+                          Icons.person_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Tasks',
-              style: AppTextStyles.h1.copyWith(
-                color: AppColors.textPrimary,
-                letterSpacing: -0.5,
-              ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Tasks',
+                  style: AppTextStyles.h1.copyWith(
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Text(
+                  'Manage your tasks efficiently',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              'Manage your tasks efficiently',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          // Logout Button on the Right Side of AppBar
-          Padding(
-            padding: const EdgeInsets.only(right: 14.0),
-            child: IconButton(
-              tooltip: 'Logout',
-              onPressed: () => _showLogoutDialog(context),
-              icon: const Icon(
-                Icons.power_settings_new_rounded,
-                color: AppColors.primary,
-                size: 24,
-              ),
-            ),
-          ),
-        ],
-      ),
-
-      // Floating Action Button - Navigate to Task Adding Screen
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/add-task'),
-        backgroundColor: AppColors.primary,
-        elevation: 6,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
-      ),
-
-      body: Stack(
-        children: [
-          // Ambient Glow Orbs
-          Positioned(
-            top: -size.width * 0.35,
-            right: -size.width * 0.25,
-            child: Container(
-              width: size.width * 0.9,
-              height: size.width * 0.9,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.18),
-                    AppColors.primary.withValues(alpha: 0.0),
-                  ],
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 14.0),
+                child: IconButton(
+                  tooltip: 'Logout',
+                  onPressed: () => _showLogoutDialog(context),
+                  icon: const Icon(
+                    Icons.power_settings_new_rounded,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => Navigator.pushNamed(context, '/add-task'),
+            backgroundColor: AppColors.primary,
+            elevation: 6,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+          ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 768;
+              final isTablet =
+                  constraints.maxWidth >= 600 && constraints.maxWidth < 768;
+              final horizontalPadding = isWide
+                  ? 36.0
+                  : (isTablet ? 28.0 : 18.0);
 
-          // Main Screen Layout
-          SafeArea(
-            child: Center(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth >= 768;
-                  final isTablet =
-                      constraints.maxWidth >= 600 && constraints.maxWidth < 768;
-                  final horizontalPadding = isWide
-                      ? 36.0
-                      : (isTablet ? 28.0 : 18.0);
-
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                      vertical: 12,
-                    ),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1100),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-
-                            // 2. Search Input Field (Matching Screenshot)
+              return Align(
+                alignment: Alignment.topCenter,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    12,
+                    horizontalPadding,
+                    24,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                             Container(
                               decoration: BoxDecoration(
                                 color: AppColors.surface,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: AppColors.border),
+                                boxShadow: AppColors.cardShadow,
                               ),
                               child: TextField(
-                                controller: TextEditingController.fromValue(
-                                  TextEditingValue(
-                                    text: controller.searchQuery,
-                                    selection: TextSelection.collapsed(
-                                      offset: controller.searchQuery.length,
-                                    ),
-                                  ),
-                                ),
+                                controller: searchController,
                                 onChanged: (val) => controller.setSearchQuery(val),
                                 style: AppTextStyles.bodyMedium.copyWith(
                                   color: AppColors.textPrimary,
@@ -415,6 +386,8 @@ class DashBoardScreen extends StatelessWidget {
                                         )
                                       : null,
                                   border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                     vertical: 14,
@@ -423,66 +396,52 @@ class DashBoardScreen extends StatelessWidget {
                               ),
                             ),
 
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 20),
 
-                            // 4. Summary Statistics Cards in a Row
-                            Row(
+                            GridView.count(
+                              crossAxisCount: isTablet || isWide ? 4 : 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: isWide ? 2.5 : (isTablet ? 2.2 : 2.1),
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
                               children: [
-                                Expanded(
-                                  child: TaskSummaryCard(
-                                    title: 'Total Tasks',
-                                    count: controller.totalTasks,
-                                    totalCount: controller.totalTasks,
-                                    icon: Icons.checklist_rounded,
-                                    accentColor: AppColors.primary,
-                                    backgroundColor: AppColors.primaryLight,
-                                    onTap: () => _showAllTasksModal(context),
-                                  ),
+                                TaskSummaryCard(
+                                  title: 'Total Tasks',
+                                  count: controller.totalTasks,
+                                  icon: Icons.checklist_rounded,
+                                  accentColor: AppColors.primary,
+                                  backgroundColor: AppColors.primaryLight,
+                                  onTap: () => _showAllTasksModal(context),
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TaskSummaryCard(
-                                    title: 'Pending',
-                                    count: controller.pendingTasks,
-                                    totalCount: controller.totalTasks,
-                                    icon: Icons.hourglass_empty_rounded,
-                                    accentColor: AppColors.warning,
-                                    backgroundColor: AppColors.statusPendingBg,
-                                    onTap: () => _showAllTasksModal(context),
-                                  ),
+                                TaskSummaryCard(
+                                  title: 'Pending',
+                                  count: controller.pendingTasks,
+                                  icon: Icons.hourglass_empty_rounded,
+                                  accentColor: AppColors.warning,
+                                  backgroundColor: AppColors.statusPendingBg,
+                                  onTap: () => _showAllTasksModal(context),
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TaskSummaryCard(
-                                    title: 'In Progress',
-                                    count: controller.inProgressTasks,
-                                    totalCount: controller.totalTasks,
-                                    icon: Icons.sync_rounded,
-                                    accentColor: AppColors.info,
-                                    backgroundColor:
-                                        AppColors.statusInProgressBg,
-                                    onTap: () => _showAllTasksModal(context),
-                                  ),
+                                TaskSummaryCard(
+                                  title: 'In Progress',
+                                  count: controller.inProgressTasks,
+                                  icon: Icons.sync_rounded,
+                                  accentColor: AppColors.info,
+                                  backgroundColor: AppColors.statusInProgressBg,
+                                  onTap: () => _showAllTasksModal(context),
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TaskSummaryCard(
-                                    title: 'Completed',
-                                    count: controller.completedTasks,
-                                    totalCount: controller.totalTasks,
-                                    icon: Icons.task_alt_rounded,
-                                    accentColor: AppColors.success,
-                                    backgroundColor:
-                                        AppColors.statusCompletedBg,
-                                    onTap: () => _showAllTasksModal(context),
-                                  ),
+                                TaskSummaryCard(
+                                  title: 'Completed',
+                                  count: controller.completedTasks,
+                                  icon: Icons.task_alt_rounded,
+                                  accentColor: AppColors.success,
+                                  backgroundColor: AppColors.statusCompletedBg,
+                                  onTap: () => _showAllTasksModal(context),
                                 ),
                               ],
                             ),
 
-                            const SizedBox(height: 24),
 
-                            // 5. Section Header: Recent Tasks & View All Button
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -510,13 +469,11 @@ class DashBoardScreen extends StatelessWidget {
                                       color: AppColors.primary,
                                     ),
                                   ),
-                                  
                                 ),
                               ],
                             ),
                             const SizedBox(height: 12),
 
-                            // 6. Main Task Cards List View
                             RecentTasksSection(
                               onViewAllTap: () => Navigator.pushNamed(context, '/task-list'),
                             ),
@@ -529,15 +486,11 @@ class DashBoardScreen extends StatelessWidget {
                   );
                 },
               ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
-
-
 
 class _FilterChip extends StatelessWidget {
   final String label;
